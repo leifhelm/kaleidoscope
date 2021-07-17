@@ -1,0 +1,13 @@
+[package]
+name = "kaleidoscope"
+version = "0.1.0"
+authors = ["Jakob Leifhelm <jakob.leifhelm@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+clap = "^2.33"
+atty = "^0.2"
+bunt = "^0.2"
+nom = "^6.1"
+nom-unicode = "^0.2"
+inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "master", features = ["llvm12-0"] }
