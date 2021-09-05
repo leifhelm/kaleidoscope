@@ -1,4 +1,4 @@
-use super::ast::*;
+use kaleidoscope_ast::*;
 
 extern crate nom;
 use nom::{

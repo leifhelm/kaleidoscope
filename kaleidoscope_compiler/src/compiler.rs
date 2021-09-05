@@ -1,19 +1,10 @@
 use super::error::{ApplicationError, FileOperation};
 use super::Logger;
 
-use std::path::Path;
-
 use bunt::termcolor::Buffer;
-use inkwell::{
-    context::Context,
-    module::Module,
-    targets::{CodeModel, FileType, InitializationConfig, RelocMode, Target, TargetTriple},
-    OptimizationLevel,
-};
 
-mod ast;
-mod codegen;
-mod parser;
+use kaleidoscope_codegen as codegen;
+use kaleidoscope_parser as parser;
 
 macro_rules! writeln {
     ($target:expr, $format_str:literal $(, $arg:expr)* $(,)?) => {
@@ -52,11 +43,13 @@ impl Compiler {
         match parser_result {
             Ok((_, ast_list)) => {
                 writeln!(&mut self.stdout, "{:?}", ast_list)?;
-                let context = Context::create();
+                let context = codegen::GlobalContext::new();
                 let module = codegen::codegen(&context, &ast_list);
                 match module {
                     Ok(module) => {
-                        self.write_executable(module)?;
+                        if let Err(err) = kaleidoscope_codegen::write_executable(module) {
+                            writeln!(self.stderr, "{$red+bold}error:{/$} {}", err)?;
+                        }
                         writeln!(&mut self.stdout, "{$green}Build sucessful{/$}")?;
                     }
                     Err(err) => {
@@ -80,26 +73,6 @@ impl Compiler {
             .as_ref()
             .print(&self.stdout)
             .map_err(ApplicationError::LoggingError)?;
-        Ok(())
-    }
-    fn write_executable<'ctx>(&mut self, module: Module<'ctx>) -> Result<(), ApplicationError> {
-        Target::initialize_x86(&InitializationConfig::default());
-
-        let target = Target::from_name("x86-64").unwrap();
-        let target_machine = target
-            .create_target_machine(
-                &TargetTriple::create("x86_64-pc-linux-gnu"),
-                "x86-64",
-                "+avx2",
-                OptimizationLevel::Default,
-                RelocMode::Default,
-                CodeModel::Default,
-            )
-            .unwrap();
-        if let Err(err) = target_machine.write_to_file(&module, FileType::Object, Path::new("a.o"))
-        {
-            writeln!(self.stderr, "{$red+bold}error:{/$} {}", err)?;
-        }
         Ok(())
     }
 }

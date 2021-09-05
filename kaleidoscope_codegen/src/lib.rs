@@ -1,14 +1,19 @@
-use super::ast::*;
+use kaleidoscope_ast::*;
+use thread_local::ThreadLocal;
+
+use std::collections::HashMap;
+use std::path::Path;
+
 use inkwell::{
     builder::Builder,
     context::Context,
     module::{Linkage, Module},
     support::LLVMString,
+    targets::{CodeModel, FileType, InitializationConfig, RelocMode, Target, TargetTriple},
     types::BasicTypeEnum,
     values::{BasicValue, BasicValueEnum, FloatValue, FunctionValue},
-    AddressSpace,
+    AddressSpace, OptimizationLevel,
 };
-use std::collections::HashMap;
 
 struct CodeGen<'ctx> {
     context: &'ctx Context,
@@ -203,9 +208,10 @@ fn name_of_basic_value(value: &BasicValueEnum) -> String {
     .into_owned()
 }
 pub fn codegen<'ctx>(
-    context: &'ctx Context,
+    global_context: &'ctx GlobalContext,
     ast_list: &'ctx Vec<AST>,
-) -> Result<Module<'ctx>, Vec<CodeGenError>> {
+) -> Result<CodeGenUnit<'ctx>, Vec<CodeGenError>> {
+    let context = global_context.get_llvm_context();
     let module = context.create_module("kaleidoscope");
     let builder = context.create_builder();
     let codegen = CodeGen {
@@ -216,7 +222,30 @@ pub fn codegen<'ctx>(
         errors: Vec::new(),
         ast_list,
     };
-    codegen.compile()
+    codegen.compile().map(|module| CodeGenUnit { module })
+}
+
+pub fn write_executable<'ctx>(cu: CodeGenUnit<'ctx>) -> Result<(), String> {
+    Target::initialize_x86(&InitializationConfig::default());
+
+    let target = Target::from_name("x86-64").unwrap();
+    let target_machine = target
+        .create_target_machine(
+            &TargetTriple::create("x86_64-pc-linux-gnu"),
+            "x86-64",
+            "+avx2",
+            OptimizationLevel::Default,
+            RelocMode::Default,
+            CodeModel::Default,
+        )
+        .unwrap();
+    target_machine
+        .write_to_file(&cu.module, FileType::Object, Path::new("a.o"))
+        .map_err(|err| err.to_string())
+}
+
+pub struct CodeGenUnit<'ctx> {
+    module: Module<'ctx>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -231,4 +260,19 @@ pub enum CodeGenError {
     InvalidFunctionCall(Identifier),
     InvalidGeneratedFunction(Identifier),
     InvalidGeneratedModule(LLVMString),
+}
+
+pub struct GlobalContext {
+    llvm_context: ThreadLocal<Context>,
+}
+
+impl GlobalContext {
+    pub fn new() -> GlobalContext {
+        GlobalContext {
+            llvm_context: ThreadLocal::new(),
+        }
+    }
+    fn get_llvm_context(&self) -> &Context {
+        self.llvm_context.get_or(|| Context::create())
+    }
 }

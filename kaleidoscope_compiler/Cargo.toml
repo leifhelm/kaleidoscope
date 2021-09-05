@@ -1,0 +1,15 @@
+[package]
+name = "kaleidoscope"
+version = "0.1.0"
+authors = ["Jakob Leifhelm <jakob.leifhelm@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+kaleidoscope_parser = { path = "../kaleidoscope_parser" }
+kaleidoscope_codegen = { path = "../kaleidoscope_codegen" }
+clap = "^2.33"
+atty = "^0.2"
+bunt = "^0.2"
+# TODO: Remove nom and move error nom error transformation into
+# kaleidoscope_parser
+nom = "^6.1"
