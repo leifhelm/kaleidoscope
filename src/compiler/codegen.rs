@@ -88,15 +88,15 @@ impl<'ctx> CodeGen<'ctx> {
                 None,
             ),
         };
-        let printf_str = self
-            .builder
-            .build_global_string_ptr("%f\n", "printf_str")
-            .as_basic_value_enum();
         let entry = match main.get_first_basic_block() {
             Some(block) => block,
             None => self.context.append_basic_block(main, "entry"),
         };
         self.builder.position_at_end(entry);
+        let printf_str = self
+            .builder
+            .build_global_string_ptr("%f\n", "printf_str")
+            .as_basic_value_enum();
         let expr = self.expression(expression)?;
         self.builder
             .build_call(printf, &vec![printf_str, expr.into()], "printtmp");

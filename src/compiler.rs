@@ -82,7 +82,7 @@ impl Compiler {
             .map_err(ApplicationError::LoggingError)?;
         Ok(())
     }
-    fn write_executable<'ctx>(&mut self, module: Module<'ctx>)-> Result<(), ApplicationError> {
+    fn write_executable<'ctx>(&mut self, module: Module<'ctx>) -> Result<(), ApplicationError> {
         Target::initialize_x86(&InitializationConfig::default());
 
         let target = Target::from_name("x86-64").unwrap();
