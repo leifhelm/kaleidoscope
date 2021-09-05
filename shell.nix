@@ -6,6 +6,7 @@ stdenv.mkDerivation {
   buildInputs = [
     cargo
     rustc
+    crate2nix
     (llvmPackages_12.libllvm.override {
       enableSharedLibraries = false;
     }).dev
