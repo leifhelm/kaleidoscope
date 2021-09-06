@@ -6,5 +6,5 @@ edition = "2018"
 
 [dependencies]
 kaleidoscope_ast = { path = "../kaleidoscope_ast" }
-nom = "^6.1"
-nom-unicode = "^0.2"
+nom = "^7.0"
+nom-unicode = "^0.3"
