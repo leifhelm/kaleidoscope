@@ -48,8 +48,7 @@ impl<'ctx, X> CodeGen<'ctx, X> {
             self.builder
                 .build_return(Some(&self.context.i32_type().const_int(0, true)));
             if !main.verify(true) {
-                self.errors
-                    .push(CodeGenError::InvalidMainFunction);
+                self.errors.push(CodeGenError::InvalidMainFunction);
             }
         }
         self.add_result(
@@ -70,7 +69,10 @@ impl<'ctx, X> CodeGen<'ctx, X> {
             Err(err) => self.errors.push(err),
         }
     }
-    fn toplevel_expression(&self, expression: &'ctx Expression<X>) -> Result<(), CodeGenError<'ctx, X>> {
+    fn toplevel_expression(
+        &self,
+        expression: &'ctx Expression<X>,
+    ) -> Result<(), CodeGenError<'ctx, X>> {
         let printf = match self.module.get_function("printf") {
             Some(function) => function,
             None => self.module.add_function(
@@ -111,8 +113,7 @@ impl<'ctx, X> CodeGen<'ctx, X> {
     fn expression(
         &self,
         expression: &'ctx Expression<X>,
-    ) -> Result<FloatValue<'ctx>, CodeGenError<'ctx, X>>
-    {
+    ) -> Result<FloatValue<'ctx>, CodeGenError<'ctx, X>> {
         match expression {
             Expression::LiteralNumber(val) => Ok(self.context.f64_type().const_float(val.wrapped)),
             Expression::Variable(name) => match self.variables.get(&name.wrapped) {
@@ -162,9 +163,9 @@ impl<'ctx, X> CodeGen<'ctx, X> {
         let doubles: Vec<BasicTypeEnum> =
             vec![self.context.f64_type().into(); prototype.args.len()];
         let fn_type = self.context.f64_type().fn_type(&doubles, false);
-        let function = self
-            .module
-            .add_function(&prototype.name.wrapped, fn_type, Some(Linkage::External));
+        let function =
+            self.module
+                .add_function(&prototype.name.wrapped, fn_type, Some(Linkage::External));
         for (i, arg_name) in prototype.args.iter().enumerate() {
             function.get_params()[i].set_name(&arg_name.wrapped);
         }
@@ -173,8 +174,7 @@ impl<'ctx, X> CodeGen<'ctx, X> {
     fn function(
         &mut self,
         function_dec: &'ctx Function<X>,
-    ) -> Result<FunctionValue<'ctx>, CodeGenError<'ctx, X>>
-    {
+    ) -> Result<FunctionValue<'ctx>, CodeGenError<'ctx, X>> {
         let proto = &function_dec.prototype;
         let function = self
             .module

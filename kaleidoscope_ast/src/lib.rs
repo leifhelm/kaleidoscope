@@ -56,10 +56,7 @@ pub struct XWrapper<Wrapped, X> {
 
 impl<Wrapped, X> XWrapper<Wrapped, X> {
     pub fn new(wrapped: Wrapped, extra: X) -> Self {
-        XWrapper {
-            wrapped,
-            extra
-        }
+        XWrapper { wrapped, extra }
     }
     // pub fn wrap(wrapped: Wrapped) -> Self {
     //     XWrapper {

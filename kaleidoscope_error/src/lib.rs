@@ -17,10 +17,7 @@ pub struct Error {
 
 impl Error {
     pub fn new(range: Range<usize>, message: String) -> Self {
-        Error {
-            range,
-            message,
-        }
+        Error { range, message }
     }
     #[cfg(all(feature = "codespan-reporting", feature = "bunt"))]
     pub fn print_codespan_reporting(

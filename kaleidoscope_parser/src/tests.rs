@@ -15,7 +15,10 @@ fn identifier() {
     );
     let input = LocatedSlice::new("hello ");
     assert_eq!(
-        Ok((input.slice(5..), XWrapper::new(String::from("hello"), Located::new(0..5)))),
+        Ok((
+            input.slice(5..),
+            XWrapper::new(String::from("hello"), Located::new(0..5))
+        )),
         super::identifier::<LocatedSlice, nom::error::Error<LocatedSlice>, Position>(input)
     );
     let input = LocatedSlice::new("64");
