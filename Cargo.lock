@@ -39,9 +39,9 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
 name = "bunt"
-version = "0.2.5"
+version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8b8ed2025819d7052531680b6473127df0f8ceb1306fea78e8eb697c902fde01"
+checksum = "192bac6c13e04373feb683e4438cbc156e6bbe432f614a9d6247445108fc5551"
 dependencies = [
  "bunt-macros",
  "termcolor",
@@ -87,6 +87,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "codespan-reporting"
+version = "0.11.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3538270d33cc669650c4b093848450d380def10c331d38c768e34cac80576e6e"
+dependencies = [
+ "termcolor",
+ "unicode-width",
+]
+
+[[package]]
 name = "either"
 version = "1.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -104,7 +114,7 @@ dependencies = [
 [[package]]
 name = "inkwell"
 version = "0.1.0"
-source = "git+https://github.com/TheDan64/inkwell?branch=master#995152faf40f85a06467ddfdc873c0fcad302aab"
+source = "git+https://github.com/TheDan64/inkwell?branch=master#d018ee22e4b5241dec2bc32ca67f3d4caaecee47"
 dependencies = [
  "either",
  "inkwell_internals",
@@ -118,7 +128,7 @@ dependencies = [
 [[package]]
 name = "inkwell_internals"
 version = "0.3.0"
-source = "git+https://github.com/TheDan64/inkwell?branch=master#995152faf40f85a06467ddfdc873c0fcad302aab"
+source = "git+https://github.com/TheDan64/inkwell?branch=master#d018ee22e4b5241dec2bc32ca67f3d4caaecee47"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -141,9 +151,10 @@ dependencies = [
  "atty",
  "bunt",
  "clap",
+ "kaleidoscope_ast",
  "kaleidoscope_codegen",
+ "kaleidoscope_error",
  "kaleidoscope_parser",
- "nom",
 ]
 
 [[package]]
@@ -160,10 +171,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "kaleidoscope_error"
+version = "0.1.0"
+dependencies = [
+ "bunt",
+ "codespan-reporting",
+]
+
+[[package]]
 name = "kaleidoscope_parser"
 version = "0.1.0"
 dependencies = [
  "kaleidoscope_ast",
+ "kaleidoscope_error",
  "nom",
  "nom-unicode",
 ]
@@ -176,9 +196,9 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "libc"
-version = "0.2.101"
+version = "0.2.102"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3cb00336871be5ed2c8ed44b60ae9959dc5b9f08539422ed43f09e34ecaeba21"
+checksum = "a2a5ac8f984bfcf3a823267e5fde638acc3325f6496633a5da6bb6eb2171e103"
 
 [[package]]
 name = "litrs"
@@ -409,9 +429,9 @@ checksum = "56dee185309b50d1f11bfedef0fe6d036842e3fb77413abef29f8f8d1c5d4c1c"
 
 [[package]]
 name = "unicode-width"
-version = "0.1.8"
+version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9337591893a19b88d8d87f2cec1e73fad5cdfd10e5a6f349f498ad6ea2ffb1e3"
+checksum = "3ed742d4ea2bd1176e236172c8429aaf54486e7ac098db29ffe6529e0ce50973"
 
 [[package]]
 name = "unicode-xid"

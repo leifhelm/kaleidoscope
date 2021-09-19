@@ -1,0 +1,13 @@
+[package]
+name = "kaleidoscope_error"
+version = "0.1.0"
+authors = ["Jakob Leifhelm <jakob.leifhelm@gmail.com>"]
+edition = "2018"
+
+[dependencies.codespan-reporting]
+version = "^0.11"
+optional = true
+
+[dependencies.bunt]
+version = "^0.2"
+optional = true

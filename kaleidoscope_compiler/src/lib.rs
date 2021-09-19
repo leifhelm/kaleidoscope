@@ -6,6 +6,7 @@ mod tests;
 use atty::Stream;
 use bunt::termcolor::{BufferWriter, ColorChoice};
 use clap::ArgMatches;
+use kaleidoscope_codegen::GlobalContext;
 use std::sync::Arc;
 
 use compiler::Compiler;
@@ -14,7 +15,10 @@ pub fn run(matches: ArgMatches) {
     match parse_cliargs(matches) {
         Ok(cli_args) => {
             let logger = Logger::new(cli_args.color_setting);
-            if let Err(err) = Compiler::new(Logger::clone(&logger), cli_args.file_name).run() {
+            let global_context = GlobalContext::new();
+            if let Err(err) =
+                Compiler::new(Logger::clone(&logger), cli_args.file_name, global_context).run()
+            {
                 let mut stderr = logger.stderr.buffer();
                 err.log(&mut stderr);
                 if let Err(logging_err) = logger.stderr.print(&stderr) {

@@ -5,11 +5,10 @@ authors = ["Jakob Leifhelm <jakob.leifhelm@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+kaleidoscope_ast = { path = "../kaleidoscope_ast" }
 kaleidoscope_parser = { path = "../kaleidoscope_parser" }
 kaleidoscope_codegen = { path = "../kaleidoscope_codegen" }
+kaleidoscope_error = { path = "../kaleidoscope_error", features = [ "bunt", "codespan-reporting" ] }
 clap = "^2.33"
 atty = "^0.2"
 bunt = "^0.2"
-# TODO: Remove nom and move error nom error transformation into
-# kaleidoscope_parser
-nom = "^7.0"

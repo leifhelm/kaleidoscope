@@ -1,4 +1,11 @@
+pub use kaleidoscope_ast as ast;
 use kaleidoscope_ast::*;
+pub mod error;
+pub mod located;
+#[cfg(test)]
+mod tests;
+
+use crate::located::{locate, Located, LocatedInput};
 
 extern crate nom;
 use nom::{
@@ -10,31 +17,65 @@ use nom::{
     multi::{many0, separated_list0},
     number::complete::double,
     sequence::{delimited, pair, preceded, terminated},
-    AsChar, Compare, IResult, InputIter, InputLength, InputTake, InputTakeAtPosition, Parser,
-    Slice,
+    AsBytes, AsChar, Compare, IResult, InputIter, InputLength, InputTake, InputTakeAtPosition,
+    Offset, Parser, Slice,
 };
-use nom_unicode::complete::{alpha1, alphanumeric1};
-use std::{
-    fmt::Display,
-    ops::{Range, RangeFrom, RangeTo},
+use nom_unicode::{
+    complete::{alpha1, alphanumeric1},
+    IsChar,
 };
-/// A combinator that takes a parser `inner` and produces a parser
-// that also consumes leading whitespace, returning the output of `inner`.
-fn ws<I, O, E, F>(inner: F) -> impl FnMut(I) -> IResult<I, O, E>
-where
-    I: InputTakeAtPosition
+use std::ops::{Range, RangeFrom, RangeTo};
+
+pub trait Input:
+    InputTakeAtPosition
+    + InputTake
+    + InputIter
+    + InputLength
+    + AsBytes
+    + for<'a> Compare<&'a [u8]>
+    + Compare<&'static str>
+    + Slice<RangeFrom<usize>>
+    + Slice<RangeTo<usize>>
+    + Slice<Range<usize>>
+    + Offset
+    + LocatedInput
+    + Into<String>
+    + PartialEq
+    + Clone
+// https://github.com/rust-lang/rust/issues/54149
+// where
+//     <Self as InputTakeAtPosition>::Item: AsChar + Clone,
+//     <Self as InputIter>::Item: AsChar,
+{
+}
+impl<T> Input for T where
+    T: InputTakeAtPosition
         + InputTake
         + InputIter
         + InputLength
+        + AsBytes
+        + for<'a> Compare<&'a [u8]>
         + Compare<&'static str>
         + Slice<RangeFrom<usize>>
         + Slice<RangeTo<usize>>
         + Slice<Range<usize>>
+        + Offset
+        + LocatedInput
+        + Into<String>
         + PartialEq
-        + Display
-        + Clone,
-    <I as InputTakeAtPosition>::Item: AsChar + Clone,
+        + Clone // https://github.com/rust-lang/rust/issues/54149
+                // <T as InputTakeAtPosition>::Item: AsChar + Clone,
+                // <T as InputIter>::Item: AsChar
+{
+}
+
+/// A combinator that takes a parser `inner` and produces a parser
+// that also consumes leading whitespace, returning the output of `inner`.
+fn ws<I, O, E, F>(inner: F) -> impl FnMut(I) -> IResult<I, O, E>
+where
+    I: Input,
     <I as InputIter>::Item: AsChar,
+    <I as InputTakeAtPosition>::Item: AsChar + Clone,
     E: ParseError<I>,
     F: Parser<I, O, E>,
 {
@@ -43,47 +84,44 @@ where
 
 fn comment<I, E>(i: I) -> IResult<I, I, E>
 where
-    I: InputTake
-        + InputIter
-        + InputLength
-        + Compare<&'static str>
-        + Slice<RangeFrom<usize>>
-        + Slice<RangeTo<usize>>
-        + Slice<Range<usize>>
-        + Display,
+    I: Input,
     <I as InputIter>::Item: AsChar,
     E: ParseError<I>,
 {
     preceded(tag("//"), not_line_ending)(i)
 }
 
-fn literal_number<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Expression, E> {
-    map(double, Expression::LiteralNumber)(i)
+fn literal_number<I, E, L>(i: I) -> IResult<I, Expression<L>, E>
+where
+    I: Input,
+    <I as InputIter>::Item: AsChar + Copy,
+    <I as InputIter>::IterElem: Clone,
+    <I as InputTakeAtPosition>::Item: AsChar,
+    E: ParseError<I>,
+    L: Located,
+{
+    map(locate(double), Expression::LiteralNumber)(i)
 }
 
-fn identifier<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&str, Identifier, E> {
-    map(
+fn identifier<I, E, L>(i: I) -> IResult<I, Identifier<L>, E>
+where
+    I: Input,
+    <I as InputTakeAtPosition>::Item: IsChar,
+    E: ParseError<I>,
+    L: Located,
+{
+    locate(map(
         recognize(pair(
             alt((alpha1, tag("_"))),
             many0(alt((alphanumeric1, tag("_")))),
         )),
-        String::from,
-    )(i)
+        Into::into,
+    ))(i)
 }
 
 fn args<I, O, E, F>(inner: F) -> impl FnMut(I) -> IResult<I, Vec<O>, E>
 where
-    I: InputTakeAtPosition
-        + InputTake
-        + InputIter
-        + InputLength
-        + Compare<&'static str>
-        + Slice<RangeFrom<usize>>
-        + Slice<RangeTo<usize>>
-        + Slice<Range<usize>>
-        + Display
-        + Clone
-        + PartialEq,
+    I: Input,
     <I as InputIter>::Item: AsChar,
     <I as InputTakeAtPosition>::Item: AsChar + Clone,
     E: ParseError<I>,
@@ -96,9 +134,17 @@ where
     )
 }
 
-fn variable_call<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Expression, E> {
+fn variable_call<I, E, L>(i: I) -> IResult<I, Expression<L>, E>
+where
+    I: Input,
+    <I as InputIter>::Item: AsChar + Copy,
+    <I as InputIter>::IterElem: Clone,
+    <I as InputTakeAtPosition>::Item: IsChar + Clone,
+    E: ParseError<I>,
+    L: Located,
+{
     let (i, ident) = identifier(i)?;
-    if let Ok((i, args)) = args::<_, _, E, _>(expression)(i) {
+    if let Ok((i, args)) = args::<_, _, E, _>(expression)(i.clone()) {
         Ok((
             i,
             Expression::Call(Call {
@@ -111,7 +157,15 @@ fn variable_call<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Exp
     }
 }
 
-fn primary<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Expression, E> {
+fn primary<I, E, L>(i: I) -> IResult<I, Expression<L>, E>
+where
+    I: Input,
+    <I as InputIter>::Item: AsChar + Copy,
+    <I as InputIter>::IterElem: Clone,
+    <I as InputTakeAtPosition>::Item: AsChar + IsChar + Clone,
+    E: ParseError<I>,
+    L: Located,
+{
     alt((
         literal_number,
         variable_call,
@@ -119,35 +173,65 @@ fn primary<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Expressio
     ))(i)
 }
 
-fn op_additive<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Op, E> {
+fn op_additive<I, E>(i: I) -> IResult<I, Op, E>
+where
+    I: Input,
+    <I as InputIter>::Item: AsChar,
+    E: ParseError<I>,
+{
     alt((
         map(char('-'), |_| Op::Subtract),
         map(char('+'), |_| Op::Add),
     ))(i)
 }
 
-fn op_multiplicative<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Op, E> {
+fn op_multiplicative<I, E>(i: I) -> IResult<I, Op, E>
+where
+    I: Input,
+    <I as InputIter>::Item: AsChar,
+    E: ParseError<I>,
+{
     alt((
         map(char('/'), |_| Op::Divide),
         map(char('*'), |_| Op::Multiply),
     ))(i)
 }
 
-fn expression<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Expression, E> {
+fn expression<I, E, L>(i: I) -> IResult<I, Expression<L>, E>
+where
+    I: Input,
+    <I as InputIter>::Item: AsChar + Copy,
+    <I as InputIter>::IterElem: Clone,
+    <I as InputTakeAtPosition>::Item: AsChar + IsChar + Clone,
+    E: ParseError<I>,
+    L: Located,
+{
     let (i, lhs) = term(i)?;
-    fold_many0(pair(ws(op_additive), ws(term)), lhs, |lhs, (op, rhs)| {
-        Expression::BinaryOperation(Box::new(BinaryOperation {
-            left_hand_side: lhs,
-            right_hand_side: rhs,
-            operation: op,
-        }))
-    })(i)
+    fold_many0(
+        pair(ws(locate(op_additive)), ws(term)),
+        lhs,
+        |lhs, (op, rhs)| {
+            Expression::BinaryOperation(Box::new(BinaryOperation {
+                left_hand_side: lhs,
+                right_hand_side: rhs,
+                operation: op,
+            }))
+        },
+    )(i)
 }
 
-fn term<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Expression, E> {
+fn term<I, E, L>(i: I) -> IResult<I, Expression<L>, E>
+where
+    I: Input,
+    <I as InputIter>::Item: AsChar + Copy,
+    <I as InputIter>::IterElem: Clone,
+    <I as InputTakeAtPosition>::Item: AsChar + IsChar + Clone,
+    E: ParseError<I>,
+    L: Located,
+{
     let (i, lhs) = primary(i)?;
     fold_many0(
-        pair(ws(op_multiplicative), ws(primary)),
+        pair(ws(locate(op_multiplicative)), ws(primary)),
         lhs,
         |lhs, (op, rhs)| {
             Expression::BinaryOperation(Box::new(BinaryOperation {
@@ -198,7 +282,7 @@ where
 
 fn keyword<I, E>(keyword: &'static str) -> impl FnMut(I) -> IResult<I, (), E>
 where
-    I: InputTakeAtPosition + InputTake + Compare<&'static str>,
+    I: Input,
     <I as InputTakeAtPosition>::Item: AsChar + Clone,
     E: ParseError<I>,
 {
@@ -208,15 +292,28 @@ where
         Ok((i, ()))
     }
 }
-fn function_prototype<'a, E: ParseError<&'a str>>(
-    i: &'a str,
-) -> IResult<&'a str, FunctionPrototype, E> {
+fn function_prototype<I, E, L>(i: I) -> IResult<I, FunctionPrototype<L>, E>
+where
+    I: Input,
+    <I as InputIter>::Item: AsChar,
+    <I as InputTakeAtPosition>::Item: AsChar + IsChar + Clone,
+    E: ParseError<I>,
+    L: Located,
+{
     map(pair(identifier, args(identifier)), |(name, args)| {
         FunctionPrototype { name, args }
     })(i)
 }
 
-fn function_definition<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Function, E> {
+fn function_definition<I, E, L>(i: I) -> IResult<I, Function<L>, E>
+where
+    I: Input,
+    <I as InputIter>::Item: AsChar + Copy,
+    <I as InputIter>::IterElem: Clone,
+    <I as InputTakeAtPosition>::Item: AsChar + IsChar + Clone,
+    E: ParseError<I>,
+    L: Located,
+{
     map(
         pair(function_prototype, ws(expression)),
         |(prototype, body)| Function {
@@ -226,7 +323,15 @@ fn function_definition<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a st
     )(i)
 }
 
-pub fn parse_item<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, AST, E> {
+pub fn parse_item<I, E, L>(i: I) -> IResult<I, AST<L>, E>
+where
+    I: Input,
+    <I as InputIter>::Item: AsChar + Copy,
+    <I as InputIter>::IterElem: Clone,
+    <I as InputTakeAtPosition>::Item: AsChar + IsChar + Clone,
+    E: ParseError<I>,
+    L: Located,
+{
     alt((
         map(preceded(keyword("def"), function_definition), |fn_def| {
             AST::Function(fn_def)
@@ -238,6 +343,17 @@ pub fn parse_item<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, AS
     ))(i)
 }
 
-pub fn parse<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Vec<AST>, E> {
-    terminated(many0(ws(parse_item)), pair(multispace0, eof))(i)
+pub fn parse<I, E, L>(i: I) -> Result<(I, Vec<AST<L>>), Option<E>>
+where
+    I: Input,
+    <I as InputIter>::Item: AsChar + Copy,
+    <I as InputIter>::IterElem: Clone,
+    <I as InputTakeAtPosition>::Item: AsChar + IsChar + Clone,
+    E: ParseError<I>,
+    L: Located,
+{
+    terminated(many0(ws(parse_item)), pair(multispace0, eof))(i).map_err(|err| match err {
+        nom::Err::Error(err) | nom::Err::Failure(err) => Some(err),
+        _ => None,
+    })
 }
