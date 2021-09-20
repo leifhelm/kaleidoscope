@@ -1,6 +1,10 @@
 use std::io::ErrorKind;
 
 use bunt::termcolor::Buffer;
+use kaleidoscope_ast::Identifier;
+use kaleidoscope_codegen::CodeGenError;
+use kaleidoscope_error as error;
+use kaleidoscope_parser::located::Located;
 
 macro_rules! error {
     ($target:expr, $format_str:literal $(, $arg:expr)*) => {
@@ -70,4 +74,37 @@ impl FileOperation {
             Self::Write => "writing to",
         }
     }
+}
+
+pub fn codegen_error_to_error<'ctx, L: Located>(error: &CodeGenError<'ctx, L>) -> error::Error {
+    match error {
+        CodeGenError::VariableNotFound(ident) => ident_error(ident, "Variable not found"),
+        CodeGenError::FunctionNotFound(ident) => ident_error(ident, "Function not found"),
+        CodeGenError::ArgumentLengthMismatch {
+            function_name,
+            expected,
+            actual,
+        } => ident_error(
+            function_name,
+            format!(
+                "Argument mismatch: expected {}, actual {}",
+                expected, actual
+            ),
+        ),
+        CodeGenError::InvalidFunctionCall(ident) => ident_error(ident, "Invalid function call"),
+        CodeGenError::InvalidGeneratedFunction(ident) => {
+            ident_error(ident, "Invalid generated LLVM function")
+        }
+        CodeGenError::InvalidMainFunction => {
+            error::Error::global("The method name `main` is reserved".into())
+        }
+        CodeGenError::InvalidGeneratedModule(error_str) => error::Error::global(format!(
+            "An error occured when genereating the code unit: {}",
+            error_str
+        )),
+    }
+}
+
+fn ident_error<M: Into<String>, L: Located>(ident: &Identifier<L>, message: M) -> error::Error {
+    error::Error::new(ident.extra.position().clone(), message.into())
 }

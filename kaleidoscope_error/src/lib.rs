@@ -11,13 +11,22 @@ use codespan_reporting::{
 };
 
 pub struct Error {
-    range: Range<usize>,
+    range: Option<Range<usize>>,
     message: String,
 }
 
 impl Error {
     pub fn new(range: Range<usize>, message: String) -> Self {
-        Error { range, message }
+        Error {
+            range: Some(range),
+            message,
+        }
+    }
+    pub fn global(message: String) -> Self {
+        Error {
+            range: None,
+            message,
+        }
     }
     #[cfg(all(feature = "codespan-reporting", feature = "bunt"))]
     pub fn print_codespan_reporting(
@@ -46,21 +55,19 @@ impl Error {
         input: &'a str,
     ) -> (SimpleFile<&'a str, &'a str>, Diagnostic<()>) {
         let file = SimpleFile::new(name, input);
+        let labels = match &self.range {
+            Some(range) => vec![Label::primary((), range.clone())],
+            None => vec![],
+        };
         let diagnostic = Diagnostic::error()
             .with_message(self.message.as_str())
-            .with_labels(vec![Label::primary((), self.range.clone())]);
+            .with_labels(labels);
         (file, diagnostic)
     }
     pub fn message(&self) -> &str {
         self.message.as_str()
     }
-}
-
-fn range_from_str_slice(first: &str, second: &str) -> Range<usize> {
-    let fst = first.as_ptr() as usize;
-    let snd = second.as_ptr() as usize;
-
-    let start = snd - fst;
-    let end = start + second.len();
-    Range { start, end }
+    pub fn range(&self) -> Option<&Range<usize>> {
+        self.range.as_ref()
+    }
 }

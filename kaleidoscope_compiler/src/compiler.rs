@@ -1,12 +1,14 @@
-use super::error::{ApplicationError, FileOperation};
-use super::Logger;
+use crate::error::codegen_error_to_error;
+use crate::error::{ApplicationError, FileOperation};
+use crate::Logger;
 
 use bunt::termcolor::Buffer;
 
 use kaleidoscope_codegen as codegen;
+use kaleidoscope_error as error;
 use kaleidoscope_parser as parser;
-use kaleidoscope_parser::located::LocatedSlice;
 use parser::ast::AST;
+use parser::located::LocatedSlice;
 use parser::located::Position;
 
 macro_rules! writeln {
@@ -66,24 +68,27 @@ impl Compiler {
         match parser_result {
             Ok((_, ast_list)) => {
                 writeln!(&mut self.stdout, "{:?}", ast_list)?;
-                return self.codegen(&ast_list);
+                return self.codegen(input, &ast_list);
             }
-            Err(Some(err)) => {
-                err.to_error()
-                    .print_codespan_reporting(self.file_name.as_str(), input, &mut self.stdout)
-                    .map_err(ApplicationError::LoggingError)?;
-            }
+            Err(Some(err)) => self.print_error(err.to_error(), input)?,
             Err(None) => {}
         }
         Ok(())
     }
-    fn codegen(&mut self, ast_list: &Vec<AST<Position>>) -> Result<(), ApplicationError> {
+    fn codegen(
+        &mut self,
+        input: &str,
+        ast_list: &Vec<AST<Position>>,
+    ) -> Result<(), ApplicationError> {
         let ctx = self.codegen_context.clone();
         let module = codegen::codegen(&ctx, &ast_list);
         match module {
             Ok(cu) => return self.write_files(cu),
-            Err(err) => {
-                writeln!(&mut self.stdout, "{[red+bold]:?}", err)?;
+            Err(errors) => {
+                for err in errors {
+                    self.print_error(codegen_error_to_error(&err), input)?;
+                }
+                // writeln!(&mut self.stdout, "{[red+bold]:?}", err)?;
             }
         }
         Ok(())
@@ -98,5 +103,11 @@ impl Compiler {
             writeln!(&mut self.stdout, "{$green}Build sucessful{/$}")?;
         }
         Ok(())
+    }
+
+    fn print_error(&mut self, error: error::Error, input: &str) -> Result<(), ApplicationError> {
+        error
+            .print_codespan_reporting(self.file_name.as_str(), input, &mut self.stdout)
+            .map_err(ApplicationError::LoggingError)
     }
 }

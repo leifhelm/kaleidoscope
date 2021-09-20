@@ -27,8 +27,8 @@ pub struct Error<I> {
 impl<L: LocatedInput + std::fmt::Debug> Error<L> {
     pub fn to_error(self) -> error::Error {
         let (slice, errorkind) = self.primary_error;
-            let position = slice.position();
-            error::Error::new(position..position, errorkind.message())
+        let position = slice.position();
+        error::Error::new(position..position, errorkind.message())
     }
 }
 
