@@ -69,10 +69,9 @@ impl Compiler {
                 return self.codegen(&ast_list);
             }
             Err(Some(err)) => {
-                if let Some(err) = err.to_error() {
-                    err.print_codespan_reporting(self.file_name.as_str(), input, &mut self.stdout)
-                        .map_err(ApplicationError::LoggingError)?;
-                }
+                err.to_error()
+                    .print_codespan_reporting(self.file_name.as_str(), input, &mut self.stdout)
+                    .map_err(ApplicationError::LoggingError)?;
             }
             Err(None) => {}
         }
