@@ -198,5 +198,4 @@ fn parse() {
         }
         Ok(ast) => println!("{:#?}", ast),
     }
-    panic!()
 }
