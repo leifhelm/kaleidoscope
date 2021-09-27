@@ -65,7 +65,6 @@ impl Error {
         input: &str,
         mut buffer: &mut dyn WriteColor,
     ) -> Result<(), std::io::Error> {
-
         let config = codespan_reporting::term::Config::default();
         let (files, diagnostic) = self.into_diagnostic(name, input);
         match codespan_reporting::term::emit(&mut buffer, &config, &files, &diagnostic) {

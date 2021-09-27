@@ -1,13 +1,14 @@
 use kaleidoscope_ast::*;
 
-use std::collections::HashMap;
 use std::path::Path;
 use std::sync::Arc;
+use std::{borrow::Borrow, collections::HashMap};
 
 use inkwell::{
     builder::Builder,
     context::Context,
     module::{Linkage, Module},
+    passes::PassManager,
     support::LLVMString,
     targets::{CodeModel, FileType, InitializationConfig, RelocMode, Target, TargetTriple},
     types::BasicTypeEnum,
@@ -20,6 +21,7 @@ struct CodeGen<'ctx, X> {
     context: &'ctx Context,
     module: Module<'ctx>,
     builder: Builder<'ctx>,
+    function_pass_manager: PassManager<FunctionValue<'ctx>>,
     variables: HashMap<String, FloatValue<'ctx>>,
     errors: Vec<CodeGenError<'ctx, X>>,
     ast_list: &'ctx Vec<AST<X>>,
@@ -191,6 +193,7 @@ impl<'ctx, X> CodeGen<'ctx, X> {
         let body = self.expression(&function_dec.body)?;
         self.builder.build_return(Some(&body));
         if function.verify(true) {
+            self.function_pass_manager.run_on(&function);
             Ok(function)
         } else {
             unsafe {
@@ -219,11 +222,18 @@ pub fn codegen<'ctx, X>(
 ) -> Result<CodeGenUnit<'ctx>, Vec<CodeGenError<'ctx, X>>> {
     let context = global_context.get_llvm_context();
     let module = context.create_module("kaleidoscope");
+    let function_pass_manager = PassManager::create(module.borrow());
+    function_pass_manager.add_instruction_combining_pass();
+    function_pass_manager.add_reassociate_pass();
+    function_pass_manager.add_gvn_pass();
+    function_pass_manager.add_cfg_simplification_pass();
+    function_pass_manager.initialize();
     let builder = context.create_builder();
     let codegen = CodeGen {
         context: &context,
         module,
         builder,
+        function_pass_manager,
         variables: HashMap::new(),
         errors: Vec::new(),
         ast_list,
