@@ -1,0 +1,28 @@
+WHITESPACE = _{ " " | "\t" | NEWLINE }
+COMMENT = _{ "//" ~ (!NEWLINE ~ ANY)* }
+comma = _{ "," }
+
+literal_number = ${ ("+" | "-")? ~ ((ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT*)?) | ("." ~ ASCII_DIGIT+)) ~ (("E" | "e") ~ ("+" | "-")? ~ ASCII_DIGIT+)? }
+
+variable_name = @{ ("_" | LOWERCASE) ~ (ALPHABETIC | NUMBER | "_")* }
+
+expression = { term ~ (operator ~ term)* }
+term = { literal_number | function_call | variable_name | ("(" ~ expression ~ ")") }
+operator = { "+" | "-" | "*" | "/" }
+
+function_call = ${ function_name ~ function_call_arguments }
+function_call_arguments = !{ "(" ~ (expression ~ (comma ~ expression)* ~ comma?)? ~ ")" }
+function_name = @{ (LOWERCASE) ~ (ALPHABETIC | NUMBER | "_")* }
+
+keyword_after = _{ WHITESPACE | COMMENT }
+def_keyword = @{ "def" ~ keyword_after }
+extern_keyword = @{ "extern" ~ keyword_after }
+
+function_decleration = { def_keyword ~ function_prototype ~ expression }
+extern_function = { extern_keyword ~ function_prototype }
+function_prototype = ${ function_name ~ function_prototype_arguments }
+function_prototype_arguments = !{ "(" ~ (variable_name ~ (comma ~ variable_name)* ~ comma?)? ~ ")" }
+
+toplevel = { function_decleration | extern_function | expression }
+file = { SOI ~ toplevel+ ~ EOI }
+

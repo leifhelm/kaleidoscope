@@ -1,7 +1,7 @@
 use std::ops::Range;
 
 #[cfg(feature = "bunt")]
-use bunt::termcolor::Buffer;
+use bunt::termcolor::WriteColor;
 #[cfg(feature = "codespan-reporting")]
 use codespan_reporting::files::Error as FilesError;
 #[cfg(feature = "codespan-reporting")]
@@ -10,31 +10,62 @@ use codespan_reporting::{
     files::SimpleFile,
 };
 
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum ErrorLevel {
+    Bug,
+    Error,
+    Info,
+    Help,
+}
+
+#[derive(Debug, PartialEq)]
 pub struct Error {
-    range: Option<Range<usize>>,
-    message: String,
+    pub range: Option<Range<usize>>,
+    pub message: String,
+    pub error_level: ErrorLevel,
+}
+
+macro_rules! ranged_err {
+    ($level:expr, $name:ident) => {
+        pub fn $name(range: Range<usize>, message: String) -> Self {
+            Error {
+                range: Some(range),
+                message,
+                error_level: $level,
+            }
+        }
+    };
+}
+macro_rules! global_err {
+    ($level:expr, $name:ident) => {
+        pub fn $name(message: String) -> Self {
+            Error {
+                range: None,
+                message,
+                error_level: $level,
+            }
+        }
+    };
 }
 
 impl Error {
-    pub fn new(range: Range<usize>, message: String) -> Self {
-        Error {
-            range: Some(range),
-            message,
-        }
-    }
-    pub fn global(message: String) -> Self {
-        Error {
-            range: None,
-            message,
-        }
-    }
+    ranged_err!(ErrorLevel::Bug, bug);
+    ranged_err!(ErrorLevel::Error, error);
+    ranged_err!(ErrorLevel::Info, info);
+    ranged_err!(ErrorLevel::Help, help);
+    global_err!(ErrorLevel::Bug, global_bug);
+    global_err!(ErrorLevel::Error, global_error);
+    global_err!(ErrorLevel::Info, global_info);
+    global_err!(ErrorLevel::Help, global_help);
+
     #[cfg(all(feature = "codespan-reporting", feature = "bunt"))]
     pub fn print_codespan_reporting(
         &self,
         name: &str,
         input: &str,
-        mut buffer: &mut Buffer,
+        mut buffer: &mut dyn WriteColor,
     ) -> Result<(), std::io::Error> {
+
         let config = codespan_reporting::term::Config::default();
         let (files, diagnostic) = self.into_diagnostic(name, input);
         match codespan_reporting::term::emit(&mut buffer, &config, &files, &diagnostic) {

@@ -96,15 +96,15 @@ pub fn codegen_error_to_error<'ctx, L: Located>(error: &CodeGenError<'ctx, L>) -
             ident_error(ident, "Invalid generated LLVM function")
         }
         CodeGenError::InvalidMainFunction => {
-            error::Error::global("The method name `main` is reserved".into())
+            error::Error::global_error("The method name `main` is reserved".into())
         }
-        CodeGenError::InvalidGeneratedModule(error_str) => error::Error::global(format!(
+        CodeGenError::InvalidGeneratedModule(error_str) => error::Error::global_error(format!(
             "An error occured when genereating the code unit: {}",
             error_str
         )),
     }
 }
 
-fn ident_error<M: Into<String>, L: Located>(ident: &Identifier<L>, message: M) -> error::Error {
-    error::Error::new(ident.extra.position().clone(), message.into())
+fn ident_error(ident: &Identifier<impl Located>, message: impl Into<String>) -> error::Error {
+    error::Error::error(ident.extra.position().clone(), message.into())
 }

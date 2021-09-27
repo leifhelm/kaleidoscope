@@ -29,6 +29,15 @@ impl Located for Position {
     }
 }
 
+impl Located for () {
+    fn new(_: Range<usize>) -> Self {}
+
+    /// panics
+    fn position(&self) -> &Range<usize> {
+        unimplemented!()
+    }
+}
+
 pub trait LocatedInput {
     fn position(&self) -> usize;
 }

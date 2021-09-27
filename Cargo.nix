@@ -89,6 +89,16 @@ rec {
       # File a bug if you depend on any for non-debug work!
       debug = internal.debugCrate { inherit packageId; };
     };
+    "kaleidoscope_parser_pest" = rec {
+      packageId = "kaleidoscope_parser_pest";
+      build = internal.buildRustCrateWithFeatures {
+        packageId = "kaleidoscope_parser_pest";
+      };
+
+      # Debug support which might change between releases.
+      # File a bug if you depend on any for non-debug work!
+      debug = internal.debugCrate { inherit packageId; };
+    };
   };
 
   # A derivation that joins the outputs of all workspace members together.
@@ -186,6 +196,16 @@ rec {
         ];
 
       };
+      "autocfg" = rec {
+        crateName = "autocfg";
+        version = "1.0.1";
+        edition = "2015";
+        sha256 = "0jj6i9zn4gjl03kjvziqdji6rwx8ykz8zk2ngpc331z2g3fk3c6d";
+        authors = [
+          "Josh Stone <cuviper@gmail.com>"
+        ];
+
+      };
       "bitflags" = rec {
         crateName = "bitflags";
         version = "1.3.2";
@@ -196,6 +216,104 @@ rec {
         ];
         features = {
           "rustc-dep-of-std" = [ "core" "compiler_builtins" ];
+        };
+        resolvedDefaultFeatures = [ "default" ];
+      };
+      "block-buffer" = rec {
+        crateName = "block-buffer";
+        version = "0.7.3";
+        edition = "2015";
+        sha256 = "12v8wizynqin0hqf140kmp9s38q223mp1b0hkqk8j5pk8720v560";
+        authors = [
+          "RustCrypto Developers"
+        ];
+        dependencies = [
+          {
+            name = "block-padding";
+            packageId = "block-padding";
+          }
+          {
+            name = "byte-tools";
+            packageId = "byte-tools";
+          }
+          {
+            name = "byteorder";
+            packageId = "byteorder";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "generic-array";
+            packageId = "generic-array";
+          }
+        ];
+
+      };
+      "block-padding" = rec {
+        crateName = "block-padding";
+        version = "0.1.5";
+        edition = "2015";
+        sha256 = "1xbkmysiz23vimd17rnsjpw9bgjxipwfslwyygqlkx4in3dxwygs";
+        authors = [
+          "RustCrypto Developers"
+        ];
+        dependencies = [
+          {
+            name = "byte-tools";
+            packageId = "byte-tools";
+          }
+        ];
+
+      };
+      "bstr" = rec {
+        crateName = "bstr";
+        version = "0.2.17";
+        edition = "2018";
+        sha256 = "08rjbhysy6gg27db2h3pnhvr2mlr5vkj797i9625kwg8hgrnjdds";
+        authors = [
+          "Andrew Gallant <jamslam@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "lazy_static";
+            packageId = "lazy_static";
+            optional = true;
+          }
+          {
+            name = "memchr";
+            packageId = "memchr";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "regex-automata";
+            packageId = "regex-automata";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "serde";
+            packageId = "serde";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+        ];
+        features = {
+          "default" = [ "std" "unicode" ];
+          "serde1" = [ "std" "serde1-nostd" "serde/std" ];
+          "serde1-nostd" = [ "serde" ];
+          "std" = [ "memchr/std" ];
+          "unicode" = [ "lazy_static" "regex-automata" ];
+        };
+        resolvedDefaultFeatures = [ "default" "lazy_static" "regex-automata" "serde" "serde1" "serde1-nostd" "std" "unicode" ];
+      };
+      "bumpalo" = rec {
+        crateName = "bumpalo";
+        version = "3.7.1";
+        edition = "2018";
+        sha256 = "0f55q7915m5dx5cgn5cli72z0gk18nf2757rd63lky4ypzvngpyr";
+        authors = [
+          "Nick Fitzgerald <fitzgen@gmail.com>"
+        ];
+        features = {
         };
         resolvedDefaultFeatures = [ "default" ];
       };
@@ -247,6 +365,47 @@ rec {
           }
         ];
 
+      };
+      "byte-tools" = rec {
+        crateName = "byte-tools";
+        version = "0.3.1";
+        edition = "2015";
+        sha256 = "1mqi29wsm8njpl51pfwr31wmpzs5ahlcb40wsjyd92l90ixcmdg3";
+        authors = [
+          "RustCrypto Developers"
+        ];
+
+      };
+      "byteorder" = rec {
+        crateName = "byteorder";
+        version = "1.4.3";
+        edition = "2018";
+        sha256 = "0456lv9xi1a5bcm32arknf33ikv76p3fr9yzki4lb2897p2qkh8l";
+        authors = [
+          "Andrew Gallant <jamslam@gmail.com>"
+        ];
+        features = {
+          "default" = [ "std" ];
+        };
+      };
+      "cast" = rec {
+        crateName = "cast";
+        version = "0.2.7";
+        edition = "2018";
+        sha256 = "16p3bqi3qad1qdjgjc1r0x72iinj1aw2k8fw5zx2l51s52sdl92c";
+        authors = [
+          "Jorge Aparicio <jorge@japaric.io>"
+        ];
+        buildDependencies = [
+          {
+            name = "rustc_version";
+            packageId = "rustc_version";
+          }
+        ];
+        features = {
+          "default" = [ "std" ];
+        };
+        resolvedDefaultFeatures = [ "default" "std" ];
       };
       "cc" = rec {
         crateName = "cc";
@@ -349,6 +508,329 @@ rec {
           "serialization" = [ "serde" "serde/rc" ];
         };
       };
+      "criterion" = rec {
+        crateName = "criterion";
+        version = "0.3.5";
+        edition = "2018";
+        sha256 = "044d2x7cxfvw2g558lzyllcv7jcdkw9xmacmb0nzx8pv4pyxl10n";
+        authors = [
+          "Jorge Aparicio <japaricious@gmail.com>"
+          "Brook Heisler <brookheisler@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "atty";
+            packageId = "atty";
+          }
+          {
+            name = "cast";
+            packageId = "cast";
+          }
+          {
+            name = "clap";
+            packageId = "clap";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "criterion-plot";
+            packageId = "criterion-plot";
+          }
+          {
+            name = "csv";
+            packageId = "csv";
+          }
+          {
+            name = "itertools";
+            packageId = "itertools";
+          }
+          {
+            name = "lazy_static";
+            packageId = "lazy_static";
+          }
+          {
+            name = "num-traits";
+            packageId = "num-traits";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "oorandom";
+            packageId = "oorandom";
+          }
+          {
+            name = "plotters";
+            packageId = "plotters";
+            usesDefaultFeatures = false;
+            features = [ "svg_backend" "area_series" "line_series" ];
+          }
+          {
+            name = "rayon";
+            packageId = "rayon";
+          }
+          {
+            name = "regex";
+            packageId = "regex";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "serde";
+            packageId = "serde";
+          }
+          {
+            name = "serde_cbor";
+            packageId = "serde_cbor";
+          }
+          {
+            name = "serde_derive";
+            packageId = "serde_derive";
+          }
+          {
+            name = "serde_json";
+            packageId = "serde_json";
+          }
+          {
+            name = "tinytemplate";
+            packageId = "tinytemplate";
+          }
+          {
+            name = "walkdir";
+            packageId = "walkdir";
+          }
+        ];
+        features = {
+          "async" = [ "futures" ];
+          "async_futures" = [ "futures/executor" "async" ];
+          "async_smol" = [ "smol" "async" ];
+          "async_std" = [ "async-std" "async" ];
+          "async_tokio" = [ "tokio" "async" ];
+          "default" = [ "cargo_bench_support" ];
+          "stable" = [ "async_futures" "async_smol" "async_tokio" "async_std" ];
+        };
+        resolvedDefaultFeatures = [ "cargo_bench_support" "default" ];
+      };
+      "criterion-plot" = rec {
+        crateName = "criterion-plot";
+        version = "0.4.4";
+        edition = "2018";
+        sha256 = "0mys2zkizh5az6ax77m5aqifk0vz35rn0a6wykvmjx9gkzg9c2fh";
+        authors = [
+          "Jorge Aparicio <japaricious@gmail.com>"
+          "Brook Heisler <brookheisler@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "cast";
+            packageId = "cast";
+          }
+          {
+            name = "itertools";
+            packageId = "itertools";
+          }
+        ];
+
+      };
+      "crossbeam-channel" = rec {
+        crateName = "crossbeam-channel";
+        version = "0.5.1";
+        edition = "2018";
+        sha256 = "1d1dnp61g51gnmc45cb4vpjsr5n62wz22an2y3q6avgifzhjgv86";
+        authors = [
+          "The Crossbeam Project Developers"
+        ];
+        dependencies = [
+          {
+            name = "cfg-if";
+            packageId = "cfg-if";
+          }
+          {
+            name = "crossbeam-utils";
+            packageId = "crossbeam-utils";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+        ];
+        features = {
+          "default" = [ "std" ];
+          "std" = [ "crossbeam-utils/std" ];
+        };
+        resolvedDefaultFeatures = [ "crossbeam-utils" "default" "std" ];
+      };
+      "crossbeam-deque" = rec {
+        crateName = "crossbeam-deque";
+        version = "0.8.1";
+        edition = "2018";
+        sha256 = "07nypn86id2lf912ahiww1jvqp0zbk2xa25ra7vzplph375c0mb4";
+        authors = [
+          "The Crossbeam Project Developers"
+        ];
+        dependencies = [
+          {
+            name = "cfg-if";
+            packageId = "cfg-if";
+          }
+          {
+            name = "crossbeam-epoch";
+            packageId = "crossbeam-epoch";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "crossbeam-utils";
+            packageId = "crossbeam-utils";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+        ];
+        features = {
+          "default" = [ "std" ];
+          "std" = [ "crossbeam-epoch/std" "crossbeam-utils/std" ];
+        };
+        resolvedDefaultFeatures = [ "crossbeam-epoch" "crossbeam-utils" "default" "std" ];
+      };
+      "crossbeam-epoch" = rec {
+        crateName = "crossbeam-epoch";
+        version = "0.9.5";
+        edition = "2018";
+        sha256 = "1zdpfd6hjf944dr5pb7h7rkiccbwksc958x4mp1y4d56384jxh2f";
+        authors = [
+          "The Crossbeam Project Developers"
+        ];
+        dependencies = [
+          {
+            name = "cfg-if";
+            packageId = "cfg-if";
+          }
+          {
+            name = "crossbeam-utils";
+            packageId = "crossbeam-utils";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "lazy_static";
+            packageId = "lazy_static";
+            optional = true;
+          }
+          {
+            name = "memoffset";
+            packageId = "memoffset";
+          }
+          {
+            name = "scopeguard";
+            packageId = "scopeguard";
+            usesDefaultFeatures = false;
+          }
+        ];
+        features = {
+          "default" = [ "std" ];
+          "loom" = [ "loom-crate" "crossbeam-utils/loom" ];
+          "nightly" = [ "crossbeam-utils/nightly" "const_fn" ];
+          "std" = [ "alloc" "crossbeam-utils/std" "lazy_static" ];
+        };
+        resolvedDefaultFeatures = [ "alloc" "lazy_static" "std" ];
+      };
+      "crossbeam-utils" = rec {
+        crateName = "crossbeam-utils";
+        version = "0.8.5";
+        edition = "2018";
+        sha256 = "1ny481cx8a5pdknypb41jqym03dl8x26i2ldyyp3yb3zrq8zqb6q";
+        authors = [
+          "The Crossbeam Project Developers"
+        ];
+        dependencies = [
+          {
+            name = "cfg-if";
+            packageId = "cfg-if";
+          }
+          {
+            name = "lazy_static";
+            packageId = "lazy_static";
+            optional = true;
+          }
+        ];
+        features = {
+          "default" = [ "std" ];
+          "std" = [ "lazy_static" ];
+        };
+        resolvedDefaultFeatures = [ "default" "lazy_static" "std" ];
+      };
+      "csv" = rec {
+        crateName = "csv";
+        version = "1.1.6";
+        edition = "2018";
+        sha256 = "1q9nqn0qlamwl18v57p82c8yhxy43lkzf2z1mndmycsvqinkm092";
+        authors = [
+          "Andrew Gallant <jamslam@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "bstr";
+            packageId = "bstr";
+            features = [ "serde1" ];
+          }
+          {
+            name = "csv-core";
+            packageId = "csv-core";
+          }
+          {
+            name = "itoa";
+            packageId = "itoa";
+          }
+          {
+            name = "ryu";
+            packageId = "ryu";
+          }
+          {
+            name = "serde";
+            packageId = "serde";
+          }
+        ];
+        devDependencies = [
+          {
+            name = "serde";
+            packageId = "serde";
+            features = [ "derive" ];
+          }
+        ];
+
+      };
+      "csv-core" = rec {
+        crateName = "csv-core";
+        version = "0.1.10";
+        edition = "2018";
+        sha256 = "145wcc3560v1kmysqqspvddppiysr2rifqzy4nnlh3r6kxanc91b";
+        authors = [
+          "Andrew Gallant <jamslam@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "memchr";
+            packageId = "memchr";
+            usesDefaultFeatures = false;
+          }
+        ];
+        features = {
+          "libc" = [ "memchr/libc" ];
+        };
+        resolvedDefaultFeatures = [ "default" ];
+      };
+      "digest" = rec {
+        crateName = "digest";
+        version = "0.8.1";
+        edition = "2015";
+        sha256 = "1madjl27f3kj5ql7kwgvb9c8b7yb7bv7yfgx7rqzj4i3fp4cil7k";
+        authors = [
+          "RustCrypto Developers"
+        ];
+        dependencies = [
+          {
+            name = "generic-array";
+            packageId = "generic-array";
+          }
+        ];
+        features = {
+          "dev" = [ "blobby" ];
+        };
+      };
       "either" = rec {
         crateName = "either";
         version = "1.6.1";
@@ -361,6 +843,47 @@ rec {
           "default" = [ "use_std" ];
         };
         resolvedDefaultFeatures = [ "default" "use_std" ];
+      };
+      "fake-simd" = rec {
+        crateName = "fake-simd";
+        version = "0.1.2";
+        edition = "2015";
+        sha256 = "1vfylvk4va2ivqx85603lyqqp0zk52cgbs4n5nfbbbqx577qm2p8";
+        authors = [
+          "The Rust-Crypto Project Developers"
+        ];
+
+      };
+      "generic-array" = rec {
+        crateName = "generic-array";
+        version = "0.12.4";
+        edition = "2015";
+        sha256 = "1gfpay78vijl9vrwl1k9v7fbvbhkhcmnrk4kfg9l6x24y4s9zpzz";
+        libName = "generic_array";
+        authors = [
+          "Bartłomiej Kamiński <fizyk20@gmail.com>"
+          "Aaron Trent <novacrazy@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "typenum";
+            packageId = "typenum";
+          }
+        ];
+
+      };
+      "half" = rec {
+        crateName = "half";
+        version = "1.7.1";
+        edition = "2018";
+        sha256 = "1wzavaaaa2jwkm4i1dbglmwjfsdhn4n73wrkbdzllaynlams5b32";
+        authors = [
+          "Kathryn Long <squeeself@gmail.com>"
+        ];
+        features = {
+          "serialize" = [ "serde" ];
+          "std" = [ "alloc" ];
+        };
       };
       "hermit-abi" = rec {
         crateName = "hermit-abi";
@@ -512,6 +1035,56 @@ rec {
           "wasm-bindgen" = [ "js-sys" "wasm-bindgen_rs" "web-sys" ];
         };
       };
+      "itertools" = rec {
+        crateName = "itertools";
+        version = "0.10.1";
+        edition = "2018";
+        sha256 = "1bsyxnm20x05rwc5qskrqy4cfswrcadzlwc26dkqml6hz64vipb9";
+        authors = [
+          "bluss"
+        ];
+        dependencies = [
+          {
+            name = "either";
+            packageId = "either";
+            usesDefaultFeatures = false;
+          }
+        ];
+        features = {
+          "default" = [ "use_std" ];
+          "use_std" = [ "use_alloc" ];
+        };
+        resolvedDefaultFeatures = [ "default" "use_alloc" "use_std" ];
+      };
+      "itoa" = rec {
+        crateName = "itoa";
+        version = "0.4.8";
+        edition = "2015";
+        sha256 = "1m1dairwyx8kfxi7ab3b5jc71z1vigh9w4shnhiajji9avzr26dp";
+        authors = [
+          "David Tolnay <dtolnay@gmail.com>"
+        ];
+        features = {
+          "default" = [ "std" ];
+        };
+        resolvedDefaultFeatures = [ "default" "std" ];
+      };
+      "js-sys" = rec {
+        crateName = "js-sys";
+        version = "0.3.55";
+        edition = "2018";
+        sha256 = "116cg9vn62cl3vifbs6cjdsg7hz98kr7sr8kpy31liccsg6gzjbw";
+        authors = [
+          "The wasm-bindgen Developers"
+        ];
+        dependencies = [
+          {
+            name = "wasm-bindgen";
+            packageId = "wasm-bindgen";
+          }
+        ];
+
+      };
       "kaleidoscope" = rec {
         crateName = "kaleidoscope";
         version = "0.1.0";
@@ -552,6 +1125,10 @@ rec {
           {
             name = "kaleidoscope_parser";
             packageId = "kaleidoscope_parser";
+          }
+          {
+            name = "kaleidoscope_parser_pest";
+            packageId = "kaleidoscope_parser_pest";
           }
         ];
 
@@ -640,6 +1217,59 @@ rec {
             packageId = "nom-unicode";
           }
         ];
+        devDependencies = [
+          {
+            name = "criterion";
+            packageId = "criterion";
+          }
+        ];
+
+      };
+      "kaleidoscope_parser_pest" = rec {
+        crateName = "kaleidoscope_parser_pest";
+        version = "0.1.0";
+        edition = "2018";
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./kaleidoscope_parser_pest; };
+        authors = [
+          "Jakob Leifhelm <jakob.leifhelm@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "kaleidoscope_ast";
+            packageId = "kaleidoscope_ast";
+          }
+          {
+            name = "kaleidoscope_error";
+            packageId = "kaleidoscope_error";
+            features = [ "bunt" "codespan-reporting" ];
+          }
+          {
+            name = "kaleidoscope_parser";
+            packageId = "kaleidoscope_parser";
+          }
+          {
+            name = "lexical-parse-float";
+            packageId = "lexical-parse-float";
+          }
+          {
+            name = "pest";
+            packageId = "pest";
+          }
+          {
+            name = "pest_derive";
+            packageId = "pest_derive";
+          }
+        ];
+        devDependencies = [
+          {
+            name = "criterion";
+            packageId = "criterion";
+          }
+          {
+            name = "termcolor";
+            packageId = "termcolor";
+          }
+        ];
 
       };
       "lazy_static" = rec {
@@ -653,6 +1283,102 @@ rec {
         features = {
           "spin_no_std" = [ "spin" ];
         };
+      };
+      "lexical-parse-float" = rec {
+        crateName = "lexical-parse-float";
+        version = "0.8.0";
+        edition = "2018";
+        sha256 = "0pz4b3gj2qk447g2mlmqlfgb7rym796c9b3cnhxs6ldq5k402fk7";
+        authors = [
+          "Alex Huszagh <ahuszagh@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "lexical-parse-integer";
+            packageId = "lexical-parse-integer";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "lexical-util";
+            packageId = "lexical-util";
+            features = [ "parse-floats" ];
+          }
+          {
+            name = "static_assertions";
+            packageId = "static_assertions";
+          }
+        ];
+        features = {
+          "compact" = [ "lexical-util/compact" "lexical-parse-integer/compact" ];
+          "default" = [ "std" ];
+          "f128" = [ "lexical-util/f128" ];
+          "f16" = [ "lexical-util/f16" ];
+          "format" = [ "lexical-util/format" "lexical-parse-integer/format" ];
+          "lint" = [ "lexical-util/lint" "lexical-parse-integer/lint" ];
+          "nightly" = [ "lexical-parse-integer/nightly" ];
+          "power-of-two" = [ "lexical-util/power-of-two" "lexical-parse-integer/power-of-two" ];
+          "radix" = [ "lexical-util/radix" "lexical-parse-integer/radix" "power-of-two" ];
+          "safe" = [ "lexical-parse-integer/safe" ];
+          "std" = [ "lexical-util/std" "lexical-parse-integer/std" ];
+        };
+        resolvedDefaultFeatures = [ "default" "std" ];
+      };
+      "lexical-parse-integer" = rec {
+        crateName = "lexical-parse-integer";
+        version = "0.8.0";
+        edition = "2018";
+        sha256 = "1b2kxprq3636x3j1qy68202q7yzsmq5c7h9w7m7zrh4cvanjpjgj";
+        authors = [
+          "Alex Huszagh <ahuszagh@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "lexical-util";
+            packageId = "lexical-util";
+            usesDefaultFeatures = false;
+            features = [ "parse-integers" ];
+          }
+          {
+            name = "static_assertions";
+            packageId = "static_assertions";
+          }
+        ];
+        features = {
+          "compact" = [ "lexical-util/compact" ];
+          "default" = [ "std" ];
+          "format" = [ "lexical-util/format" ];
+          "lint" = [ "lexical-util/lint" ];
+          "power-of-two" = [ "lexical-util/power-of-two" ];
+          "radix" = [ "lexical-util/radix" "power-of-two" ];
+          "std" = [ "lexical-util/std" ];
+        };
+        resolvedDefaultFeatures = [ "std" ];
+      };
+      "lexical-util" = rec {
+        crateName = "lexical-util";
+        version = "0.8.1";
+        edition = "2018";
+        sha256 = "14g224mm2li0q6jnnqh92dzx3zjyflji3i8dz4xf6vp1mb66kxkg";
+        authors = [
+          "Alex Huszagh <ahuszagh@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "static_assertions";
+            packageId = "static_assertions";
+          }
+        ];
+        features = {
+          "default" = [ "std" ];
+          "f128" = [ "floats" ];
+          "f16" = [ "floats" ];
+          "parse-floats" = [ "parse" "floats" ];
+          "parse-integers" = [ "parse" "integers" ];
+          "radix" = [ "power-of-two" ];
+          "write-floats" = [ "write" "floats" ];
+          "write-integers" = [ "write" "integers" ];
+        };
+        resolvedDefaultFeatures = [ "default" "floats" "integers" "parse" "parse-floats" "parse-integers" "std" ];
       };
       "libc" = rec {
         crateName = "libc";
@@ -718,7 +1444,7 @@ rec {
           }
           {
             name = "semver";
-            packageId = "semver";
+            packageId = "semver 0.11.0";
           }
         ];
         features = {
@@ -742,6 +1468,37 @@ rec {
         features = {
         };
       };
+      "log" = rec {
+        crateName = "log";
+        version = "0.4.14";
+        edition = "2015";
+        sha256 = "04175hv0v62shd82qydq58a48k3bjijmk54v38zgqlbxqkkbpfai";
+        authors = [
+          "The Rust Project Developers"
+        ];
+        dependencies = [
+          {
+            name = "cfg-if";
+            packageId = "cfg-if";
+          }
+        ];
+        features = {
+          "kv_unstable" = [ "value-bag" ];
+          "kv_unstable_serde" = [ "kv_unstable_std" "value-bag/serde" "serde" ];
+          "kv_unstable_std" = [ "std" "kv_unstable" "value-bag/error" ];
+          "kv_unstable_sval" = [ "kv_unstable" "value-bag/sval" "sval" ];
+        };
+      };
+      "maplit" = rec {
+        crateName = "maplit";
+        version = "1.0.2";
+        edition = "2015";
+        sha256 = "07b5kjnhrrmfhgqm9wprjw8adx6i225lqp49gasgqg74lahnabiy";
+        authors = [
+          "bluss"
+        ];
+
+      };
       "memchr" = rec {
         crateName = "memchr";
         version = "2.4.1";
@@ -757,6 +1514,24 @@ rec {
           "use_std" = [ "std" ];
         };
         resolvedDefaultFeatures = [ "default" "std" "use_std" ];
+      };
+      "memoffset" = rec {
+        crateName = "memoffset";
+        version = "0.6.4";
+        edition = "2015";
+        sha256 = "1yfx2v8kmkhr2d4gwk8ghihdwg73vapn3vvp0im06f0kgx8crb2r";
+        authors = [
+          "Gilad Naaman <gilad.naaman@gmail.com>"
+        ];
+        buildDependencies = [
+          {
+            name = "autocfg";
+            packageId = "autocfg";
+          }
+        ];
+        features = {
+        };
+        resolvedDefaultFeatures = [ "default" ];
       };
       "minimal-lexical" = rec {
         crateName = "minimal-lexical";
@@ -824,6 +1599,46 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" "std" ];
       };
+      "num-traits" = rec {
+        crateName = "num-traits";
+        version = "0.2.14";
+        edition = "2015";
+        sha256 = "144j176s2p76azy2ngk2vkdzgwdc0bc8c93jhki8c9fsbknb2r4s";
+        authors = [
+          "The Rust Project Developers"
+        ];
+        buildDependencies = [
+          {
+            name = "autocfg";
+            packageId = "autocfg";
+          }
+        ];
+        features = {
+          "default" = [ "std" ];
+        };
+        resolvedDefaultFeatures = [ "default" "std" ];
+      };
+      "num_cpus" = rec {
+        crateName = "num_cpus";
+        version = "1.13.0";
+        edition = "2015";
+        sha256 = "1cv6yxhz2zbnwn8pn1yn8grg7zsnd523947fby41a737aqvryj85";
+        authors = [
+          "Sean McArthur <sean@seanmonstar.com>"
+        ];
+        dependencies = [
+          {
+            name = "hermit-abi";
+            packageId = "hermit-abi";
+            target = { target, features }: (((target."arch" == "x86_64") || (target."arch" == "aarch64")) && (target."os" == "hermit"));
+          }
+          {
+            name = "libc";
+            packageId = "libc";
+          }
+        ];
+
+      };
       "once_cell" = rec {
         crateName = "once_cell";
         version = "1.8.0";
@@ -838,6 +1653,26 @@ rec {
           "std" = [ "alloc" ];
         };
         resolvedDefaultFeatures = [ "alloc" "default" "race" "std" ];
+      };
+      "oorandom" = rec {
+        crateName = "oorandom";
+        version = "11.1.3";
+        edition = "2018";
+        sha256 = "0xdm4vd89aiwnrk1xjwzklnchjqvib4klcihlc2bsd4x50mbrc8a";
+        authors = [
+          "Simon Heath <icefox@dreamquest.io>"
+        ];
+
+      };
+      "opaque-debug" = rec {
+        crateName = "opaque-debug";
+        version = "0.2.3";
+        edition = "2015";
+        sha256 = "172j6bs8ndclqxa2m64qc0y1772rr73g4l9fg2svscgicnbfff98";
+        authors = [
+          "RustCrypto Developers"
+        ];
+
       };
       "parking_lot" = rec {
         crateName = "parking_lot";
@@ -932,6 +1767,161 @@ rec {
           "pretty-print" = [ "serde" "serde_json" ];
         };
       };
+      "pest_derive" = rec {
+        crateName = "pest_derive";
+        version = "2.1.0";
+        edition = "2015";
+        sha256 = "1l5jfa6ril71cw5nsiw0r45br54dd8cj2r1nc2d1wq6wb3jilgc3";
+        procMacro = true;
+        authors = [
+          "Dragoș Tiselice <dragostiselice@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "pest";
+            packageId = "pest";
+          }
+          {
+            name = "pest_generator";
+            packageId = "pest_generator";
+          }
+        ];
+
+      };
+      "pest_generator" = rec {
+        crateName = "pest_generator";
+        version = "2.1.3";
+        edition = "2015";
+        sha256 = "0mfgl0p6v91ywdqr9i8w053v70cnfqjk8y5rhwbvir9idridpf4r";
+        authors = [
+          "Dragoș Tiselice <dragostiselice@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "pest";
+            packageId = "pest";
+          }
+          {
+            name = "pest_meta";
+            packageId = "pest_meta";
+          }
+          {
+            name = "proc-macro2";
+            packageId = "proc-macro2";
+          }
+          {
+            name = "quote";
+            packageId = "quote";
+          }
+          {
+            name = "syn";
+            packageId = "syn";
+          }
+        ];
+
+      };
+      "pest_meta" = rec {
+        crateName = "pest_meta";
+        version = "2.1.3";
+        edition = "2015";
+        sha256 = "07d1jbbbpxpchk0j37ljas46sdyyg599z3zw2ac0f5sk9x06xgjl";
+        authors = [
+          "Dragoș Tiselice <dragostiselice@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "maplit";
+            packageId = "maplit";
+          }
+          {
+            name = "pest";
+            packageId = "pest";
+          }
+        ];
+        buildDependencies = [
+          {
+            name = "sha-1";
+            packageId = "sha-1";
+            usesDefaultFeatures = false;
+          }
+        ];
+
+      };
+      "plotters" = rec {
+        crateName = "plotters";
+        version = "0.3.1";
+        edition = "2018";
+        sha256 = "0akgmm5kqghl2b1q1qkzjggiqnb9smaz54fd5374k5qbqfggv8rj";
+        authors = [
+          "Hao Hou <haohou302@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "num-traits";
+            packageId = "num-traits";
+          }
+          {
+            name = "plotters-backend";
+            packageId = "plotters-backend";
+          }
+          {
+            name = "plotters-svg";
+            packageId = "plotters-svg";
+            optional = true;
+          }
+          {
+            name = "wasm-bindgen";
+            packageId = "wasm-bindgen";
+            target = { target, features }: (target."arch" == "wasm32");
+          }
+          {
+            name = "web-sys";
+            packageId = "web-sys";
+            target = { target, features }: (target."arch" == "wasm32");
+            features = [ "Document" "DomRect" "Element" "HtmlElement" "Node" "Window" "HtmlCanvasElement" "CanvasRenderingContext2d" ];
+          }
+        ];
+        features = {
+          "all_elements" = [ "errorbar" "candlestick" "boxplot" "histogram" ];
+          "all_series" = [ "area_series" "line_series" "point_series" "surface_series" ];
+          "bitmap_backend" = [ "plotters-bitmap" "ttf" ];
+          "bitmap_encoder" = [ "plotters-bitmap/image_encoder" ];
+          "bitmap_gif" = [ "plotters-bitmap/gif_backend" ];
+          "datetime" = [ "chrono" ];
+          "default" = [ "bitmap_backend" "bitmap_encoder" "bitmap_gif" "svg_backend" "chrono" "ttf" "image" "deprecated_items" "all_series" "all_elements" ];
+          "evcxr" = [ "svg_backend" ];
+          "svg_backend" = [ "plotters-svg" ];
+          "ttf" = [ "font-kit" "ttf-parser" "lazy_static" "pathfinder_geometry" ];
+        };
+        resolvedDefaultFeatures = [ "area_series" "line_series" "plotters-svg" "svg_backend" ];
+      };
+      "plotters-backend" = rec {
+        crateName = "plotters-backend";
+        version = "0.3.2";
+        edition = "2018";
+        sha256 = "075ccyz814q46dkr93zz7crj9mmyqgk0w6mmrpyz1sm0ilqig16q";
+        authors = [
+          "Hao Hou <haohou302@gmail.com>"
+        ];
+
+      };
+      "plotters-svg" = rec {
+        crateName = "plotters-svg";
+        version = "0.3.1";
+        edition = "2018";
+        sha256 = "1aavi3i4jrwydw3i6x0zxs3i3c7gki7jlhg9agff35x5ixisj7sj";
+        authors = [
+          "Hao Hou <haohou302@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "plotters-backend";
+            packageId = "plotters-backend";
+          }
+        ];
+        features = {
+        };
+      };
       "proc-macro2" = rec {
         crateName = "proc-macro2";
         version = "1.0.29";
@@ -972,6 +1962,71 @@ rec {
           "proc-macro" = [ "proc-macro2/proc-macro" ];
         };
         resolvedDefaultFeatures = [ "default" "proc-macro" ];
+      };
+      "rayon" = rec {
+        crateName = "rayon";
+        version = "1.5.1";
+        edition = "2018";
+        sha256 = "143dl2453bazgk7rwjrickmyqd0ks3q69nfz8axcins19n0clsn0";
+        authors = [
+          "Niko Matsakis <niko@alum.mit.edu>"
+          "Josh Stone <cuviper@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "crossbeam-deque";
+            packageId = "crossbeam-deque";
+          }
+          {
+            name = "either";
+            packageId = "either";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "rayon-core";
+            packageId = "rayon-core";
+          }
+        ];
+        buildDependencies = [
+          {
+            name = "autocfg";
+            packageId = "autocfg";
+          }
+        ];
+
+      };
+      "rayon-core" = rec {
+        crateName = "rayon-core";
+        version = "1.9.1";
+        edition = "2018";
+        sha256 = "13kdcnqp2p1a5a3amamfjpnm7ay463vq4dfxy4rrh9shr3i210fp";
+        authors = [
+          "Niko Matsakis <niko@alum.mit.edu>"
+          "Josh Stone <cuviper@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "crossbeam-channel";
+            packageId = "crossbeam-channel";
+          }
+          {
+            name = "crossbeam-deque";
+            packageId = "crossbeam-deque";
+          }
+          {
+            name = "crossbeam-utils";
+            packageId = "crossbeam-utils";
+          }
+          {
+            name = "lazy_static";
+            packageId = "lazy_static";
+          }
+          {
+            name = "num_cpus";
+            packageId = "num_cpus";
+          }
+        ];
+
       };
       "redox_syscall" = rec {
         crateName = "redox_syscall";
@@ -1032,6 +2087,20 @@ rec {
         };
         resolvedDefaultFeatures = [ "aho-corasick" "default" "memchr" "perf" "perf-cache" "perf-dfa" "perf-inline" "perf-literal" "std" "unicode" "unicode-age" "unicode-bool" "unicode-case" "unicode-gencat" "unicode-perl" "unicode-script" "unicode-segment" ];
       };
+      "regex-automata" = rec {
+        crateName = "regex-automata";
+        version = "0.1.10";
+        edition = "2015";
+        sha256 = "0ci1hvbzhrfby5fdpf4ganhf7kla58acad9i1ff1p34dzdrhs8vc";
+        authors = [
+          "Andrew Gallant <jamslam@gmail.com>"
+        ];
+        features = {
+          "default" = [ "std" ];
+          "std" = [ "regex-syntax" ];
+          "transducer" = [ "std" "fst" ];
+        };
+      };
       "regex-syntax" = rec {
         crateName = "regex-syntax";
         version = "0.6.25";
@@ -1046,6 +2115,51 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" "unicode" "unicode-age" "unicode-bool" "unicode-case" "unicode-gencat" "unicode-perl" "unicode-script" "unicode-segment" ];
       };
+      "rustc_version" = rec {
+        crateName = "rustc_version";
+        version = "0.4.0";
+        edition = "2018";
+        sha256 = "0rpk9rcdk405xhbmgclsh4pai0svn49x35aggl4nhbkd4a2zb85z";
+        authors = [
+          "Dirkjan Ochtman <dirkjan@ochtman.nl>"
+          "Marvin Löbel <loebel.marvin@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "semver";
+            packageId = "semver 1.0.4";
+          }
+        ];
+
+      };
+      "ryu" = rec {
+        crateName = "ryu";
+        version = "1.0.5";
+        edition = "2018";
+        sha256 = "0vpqv1dj7fksa6hm3zpk5rbsjs0ifbfy7xwzsyyil0rx37a03lvi";
+        authors = [
+          "David Tolnay <dtolnay@gmail.com>"
+        ];
+        features = {
+        };
+      };
+      "same-file" = rec {
+        crateName = "same-file";
+        version = "1.0.6";
+        edition = "2018";
+        sha256 = "00h5j1w87dmhnvbv9l8bic3y7xxsnjmssvifw2ayvgx9mb1ivz4k";
+        authors = [
+          "Andrew Gallant <jamslam@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "winapi-util";
+            packageId = "winapi-util";
+            target = { target, features }: (target."windows" or false);
+          }
+        ];
+
+      };
       "scopeguard" = rec {
         crateName = "scopeguard";
         version = "1.1.0";
@@ -1058,7 +2172,7 @@ rec {
           "default" = [ "use_std" ];
         };
       };
-      "semver" = rec {
+      "semver 0.11.0" = rec {
         crateName = "semver";
         version = "0.11.0";
         edition = "2015";
@@ -1078,6 +2192,19 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" ];
       };
+      "semver 1.0.4" = rec {
+        crateName = "semver";
+        version = "1.0.4";
+        edition = "2018";
+        sha256 = "04l00sn8y7lv1a8j11a6r7vwcm5qmlsdh7zqb0rw2cxab1i8x2jn";
+        authors = [
+          "David Tolnay <dtolnay@gmail.com>"
+        ];
+        features = {
+          "default" = [ "std" ];
+        };
+        resolvedDefaultFeatures = [ "default" "std" ];
+      };
       "semver-parser" = rec {
         crateName = "semver-parser";
         version = "0.10.2";
@@ -1095,6 +2222,150 @@ rec {
         ];
 
       };
+      "serde" = rec {
+        crateName = "serde";
+        version = "1.0.130";
+        edition = "2015";
+        sha256 = "04y9s1mxcxakg9bhfdiff9w4zzprk6m6dazcpmpi8nfg6zg0cbgi";
+        authors = [
+          "Erick Tryzelaar <erick.tryzelaar@gmail.com>"
+          "David Tolnay <dtolnay@gmail.com>"
+        ];
+        features = {
+          "default" = [ "std" ];
+          "derive" = [ "serde_derive" ];
+        };
+        resolvedDefaultFeatures = [ "default" "std" ];
+      };
+      "serde_cbor" = rec {
+        crateName = "serde_cbor";
+        version = "0.11.2";
+        edition = "2018";
+        sha256 = "1xf1bq7ixha30914pd5jl3yw9v1x6car7xgrpimvfvs5vszjxvrb";
+        authors = [
+          "Pyfisch <pyfisch@posteo.org>"
+          "Steven Fackler <sfackler@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "half";
+            packageId = "half";
+          }
+          {
+            name = "serde";
+            packageId = "serde";
+            usesDefaultFeatures = false;
+          }
+        ];
+        features = {
+          "alloc" = [ "serde/alloc" ];
+          "default" = [ "std" ];
+          "std" = [ "serde/std" ];
+        };
+        resolvedDefaultFeatures = [ "default" "std" ];
+      };
+      "serde_derive" = rec {
+        crateName = "serde_derive";
+        version = "1.0.130";
+        edition = "2015";
+        sha256 = "12shxhi47db54i4j44ic2nl299x5p89ngna0w3m6854nn4d1mg6p";
+        procMacro = true;
+        authors = [
+          "Erick Tryzelaar <erick.tryzelaar@gmail.com>"
+          "David Tolnay <dtolnay@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "proc-macro2";
+            packageId = "proc-macro2";
+          }
+          {
+            name = "quote";
+            packageId = "quote";
+          }
+          {
+            name = "syn";
+            packageId = "syn";
+          }
+        ];
+        features = {
+        };
+        resolvedDefaultFeatures = [ "default" ];
+      };
+      "serde_json" = rec {
+        crateName = "serde_json";
+        version = "1.0.68";
+        edition = "2018";
+        sha256 = "1n2jg9cf14lrxasj63rlrwxlw5v79m851gycw6zy20jnjx9hhs8g";
+        authors = [
+          "Erick Tryzelaar <erick.tryzelaar@gmail.com>"
+          "David Tolnay <dtolnay@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "itoa";
+            packageId = "itoa";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "ryu";
+            packageId = "ryu";
+          }
+          {
+            name = "serde";
+            packageId = "serde";
+            usesDefaultFeatures = false;
+          }
+        ];
+        features = {
+          "alloc" = [ "serde/alloc" ];
+          "default" = [ "std" ];
+          "preserve_order" = [ "indexmap" ];
+          "std" = [ "serde/std" ];
+        };
+        resolvedDefaultFeatures = [ "default" "std" ];
+      };
+      "sha-1" = rec {
+        crateName = "sha-1";
+        version = "0.8.2";
+        edition = "2015";
+        sha256 = "1pv387q0r7llk2cqzyq0nivzvkgqgzsiygqzlv7b68z9xl5lvngp";
+        libName = "sha1";
+        authors = [
+          "RustCrypto Developers"
+        ];
+        dependencies = [
+          {
+            name = "block-buffer";
+            packageId = "block-buffer";
+          }
+          {
+            name = "digest";
+            packageId = "digest";
+          }
+          {
+            name = "fake-simd";
+            packageId = "fake-simd";
+          }
+          {
+            name = "opaque-debug";
+            packageId = "opaque-debug";
+          }
+        ];
+        devDependencies = [
+          {
+            name = "digest";
+            packageId = "digest";
+            features = [ "dev" ];
+          }
+        ];
+        features = {
+          "asm" = [ "sha1-asm" ];
+          "asm-aarch64" = [ "asm" "libc" ];
+          "default" = [ "std" ];
+          "std" = [ "digest/std" ];
+        };
+      };
       "smallvec" = rec {
         crateName = "smallvec";
         version = "1.6.1";
@@ -1102,6 +2373,17 @@ rec {
         sha256 = "0kk08axr0ybfbjzk65a41k84mb6sfhyajmfndaka9igkx34kf3zy";
         authors = [
           "The Servo Project Developers"
+        ];
+        features = {
+        };
+      };
+      "static_assertions" = rec {
+        crateName = "static_assertions";
+        version = "1.1.0";
+        edition = "2015";
+        sha256 = "0gsl6xmw10gvn3zs1rv99laj5ig7ylffnh71f9l34js4nr4r7sx2";
+        authors = [
+          "Nikolai Vazquez"
         ];
         features = {
         };
@@ -1147,7 +2429,7 @@ rec {
           "proc-macro" = [ "proc-macro2/proc-macro" "quote/proc-macro" ];
           "test" = [ "syn-test-suite/all-features" ];
         };
-        resolvedDefaultFeatures = [ "clone-impls" "default" "derive" "fold" "full" "parsing" "printing" "proc-macro" "quote" ];
+        resolvedDefaultFeatures = [ "clone-impls" "default" "derive" "fold" "full" "parsing" "printing" "proc-macro" "quote" "visit" ];
       };
       "termcolor" = rec {
         crateName = "termcolor";
@@ -1197,6 +2479,39 @@ rec {
           }
         ];
 
+      };
+      "tinytemplate" = rec {
+        crateName = "tinytemplate";
+        version = "1.2.1";
+        edition = "2015";
+        sha256 = "1g5n77cqkdh9hy75zdb01adxn45mkh9y40wdr7l68xpz35gnnkdy";
+        authors = [
+          "Brook Heisler <brookheisler@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "serde";
+            packageId = "serde";
+          }
+          {
+            name = "serde_json";
+            packageId = "serde_json";
+          }
+        ];
+
+      };
+      "typenum" = rec {
+        crateName = "typenum";
+        version = "1.14.0";
+        edition = "2018";
+        sha256 = "1v2r349b2dr0pknpjk3nkrbi3mhaa3wl7zi7bdbla4zmcni0hdxn";
+        build = "build/main.rs";
+        authors = [
+          "Paho Lurie-Gregg <paho@paholg.com>"
+          "Andre Bogus <bogusandre@gmail.com>"
+        ];
+        features = {
+        };
       };
       "ucd-trie" = rec {
         crateName = "ucd-trie";
@@ -1285,6 +2600,622 @@ rec {
           "Sergio Benitez <sb@sergio.bz>"
         ];
 
+      };
+      "walkdir" = rec {
+        crateName = "walkdir";
+        version = "2.3.2";
+        edition = "2018";
+        sha256 = "0mnszy33685v8y9js8mw6x2p3iddqs8vfj7n2dhqddnlbirz5340";
+        authors = [
+          "Andrew Gallant <jamslam@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "same-file";
+            packageId = "same-file";
+          }
+          {
+            name = "winapi";
+            packageId = "winapi";
+            target = { target, features }: (target."windows" or false);
+            features = [ "std" "winnt" ];
+          }
+          {
+            name = "winapi-util";
+            packageId = "winapi-util";
+            target = { target, features }: (target."windows" or false);
+          }
+        ];
+
+      };
+      "wasm-bindgen" = rec {
+        crateName = "wasm-bindgen";
+        version = "0.2.78";
+        edition = "2018";
+        sha256 = "1kkzwj24z9ad7lq8c5ynlnpxpx8hwra6w6brl871a6dj6vi76bv3";
+        authors = [
+          "The wasm-bindgen Developers"
+        ];
+        dependencies = [
+          {
+            name = "cfg-if";
+            packageId = "cfg-if";
+          }
+          {
+            name = "wasm-bindgen-macro";
+            packageId = "wasm-bindgen-macro";
+          }
+        ];
+        features = {
+          "default" = [ "spans" "std" ];
+          "enable-interning" = [ "std" ];
+          "serde-serialize" = [ "serde" "serde_json" "std" ];
+          "spans" = [ "wasm-bindgen-macro/spans" ];
+          "strict-macro" = [ "wasm-bindgen-macro/strict-macro" ];
+          "xxx_debug_only_print_generated_code" = [ "wasm-bindgen-macro/xxx_debug_only_print_generated_code" ];
+        };
+        resolvedDefaultFeatures = [ "default" "spans" "std" ];
+      };
+      "wasm-bindgen-backend" = rec {
+        crateName = "wasm-bindgen-backend";
+        version = "0.2.78";
+        edition = "2018";
+        sha256 = "0yw3ma0ahd1cz3afxpqcgwy9rwwgmz2g8pn8nas7c95sky7vy5x3";
+        authors = [
+          "The wasm-bindgen Developers"
+        ];
+        dependencies = [
+          {
+            name = "bumpalo";
+            packageId = "bumpalo";
+          }
+          {
+            name = "lazy_static";
+            packageId = "lazy_static";
+          }
+          {
+            name = "log";
+            packageId = "log";
+          }
+          {
+            name = "proc-macro2";
+            packageId = "proc-macro2";
+          }
+          {
+            name = "quote";
+            packageId = "quote";
+          }
+          {
+            name = "syn";
+            packageId = "syn";
+            features = [ "full" ];
+          }
+          {
+            name = "wasm-bindgen-shared";
+            packageId = "wasm-bindgen-shared";
+          }
+        ];
+        features = {
+          "extra-traits" = [ "syn/extra-traits" ];
+        };
+        resolvedDefaultFeatures = [ "spans" ];
+      };
+      "wasm-bindgen-macro" = rec {
+        crateName = "wasm-bindgen-macro";
+        version = "0.2.78";
+        edition = "2018";
+        sha256 = "1ydcppds5qbj77c7kdinkg9qidcf7ahvwqvnb3v8nllmqkklcqfm";
+        procMacro = true;
+        authors = [
+          "The wasm-bindgen Developers"
+        ];
+        dependencies = [
+          {
+            name = "quote";
+            packageId = "quote";
+          }
+          {
+            name = "wasm-bindgen-macro-support";
+            packageId = "wasm-bindgen-macro-support";
+          }
+        ];
+        features = {
+          "spans" = [ "wasm-bindgen-macro-support/spans" ];
+          "strict-macro" = [ "wasm-bindgen-macro-support/strict-macro" ];
+        };
+        resolvedDefaultFeatures = [ "spans" ];
+      };
+      "wasm-bindgen-macro-support" = rec {
+        crateName = "wasm-bindgen-macro-support";
+        version = "0.2.78";
+        edition = "2018";
+        sha256 = "1ay5qmbqh8hbsgf2dqkg7ia13srx3c1d6p2qvjmzhdaqlbpf00vq";
+        authors = [
+          "The wasm-bindgen Developers"
+        ];
+        dependencies = [
+          {
+            name = "proc-macro2";
+            packageId = "proc-macro2";
+          }
+          {
+            name = "quote";
+            packageId = "quote";
+          }
+          {
+            name = "syn";
+            packageId = "syn";
+            features = [ "visit" "full" ];
+          }
+          {
+            name = "wasm-bindgen-backend";
+            packageId = "wasm-bindgen-backend";
+          }
+          {
+            name = "wasm-bindgen-shared";
+            packageId = "wasm-bindgen-shared";
+          }
+        ];
+        features = {
+          "extra-traits" = [ "syn/extra-traits" ];
+          "spans" = [ "wasm-bindgen-backend/spans" ];
+        };
+        resolvedDefaultFeatures = [ "spans" ];
+      };
+      "wasm-bindgen-shared" = rec {
+        crateName = "wasm-bindgen-shared";
+        version = "0.2.78";
+        edition = "2018";
+        sha256 = "1k27dc57h0brx5ish4dwmzibyif7m9lfagvph1a7s0ygi4kj6dq2";
+        authors = [
+          "The wasm-bindgen Developers"
+        ];
+
+      };
+      "web-sys" = rec {
+        crateName = "web-sys";
+        version = "0.3.55";
+        edition = "2018";
+        sha256 = "1yz9dym9y9f9s1f99q5j5kl2dfc5kn2jpjfdnnkfmnar3igi1srq";
+        authors = [
+          "The wasm-bindgen Developers"
+        ];
+        dependencies = [
+          {
+            name = "js-sys";
+            packageId = "js-sys";
+          }
+          {
+            name = "wasm-bindgen";
+            packageId = "wasm-bindgen";
+          }
+        ];
+        features = {
+          "AbortSignal" = [ "EventTarget" ];
+          "AnalyserNode" = [ "AudioNode" "EventTarget" ];
+          "Animation" = [ "EventTarget" ];
+          "AnimationEvent" = [ "Event" ];
+          "AnimationPlaybackEvent" = [ "Event" ];
+          "Attr" = [ "EventTarget" "Node" ];
+          "AudioBufferSourceNode" = [ "AudioNode" "AudioScheduledSourceNode" "EventTarget" ];
+          "AudioContext" = [ "BaseAudioContext" "EventTarget" ];
+          "AudioDestinationNode" = [ "AudioNode" "EventTarget" ];
+          "AudioNode" = [ "EventTarget" ];
+          "AudioProcessingEvent" = [ "Event" ];
+          "AudioScheduledSourceNode" = [ "AudioNode" "EventTarget" ];
+          "AudioStreamTrack" = [ "EventTarget" "MediaStreamTrack" ];
+          "AudioTrackList" = [ "EventTarget" ];
+          "AudioWorklet" = [ "Worklet" ];
+          "AudioWorkletGlobalScope" = [ "WorkletGlobalScope" ];
+          "AudioWorkletNode" = [ "AudioNode" "EventTarget" ];
+          "AuthenticatorAssertionResponse" = [ "AuthenticatorResponse" ];
+          "AuthenticatorAttestationResponse" = [ "AuthenticatorResponse" ];
+          "BaseAudioContext" = [ "EventTarget" ];
+          "BatteryManager" = [ "EventTarget" ];
+          "BeforeUnloadEvent" = [ "Event" ];
+          "BiquadFilterNode" = [ "AudioNode" "EventTarget" ];
+          "BlobEvent" = [ "Event" ];
+          "Bluetooth" = [ "EventTarget" ];
+          "BluetoothAdvertisingEvent" = [ "Event" ];
+          "BluetoothDevice" = [ "EventTarget" ];
+          "BluetoothPermissionResult" = [ "EventTarget" "PermissionStatus" ];
+          "BluetoothRemoteGattCharacteristic" = [ "EventTarget" ];
+          "BluetoothRemoteGattService" = [ "EventTarget" ];
+          "BroadcastChannel" = [ "EventTarget" ];
+          "CanvasCaptureMediaStream" = [ "EventTarget" "MediaStream" ];
+          "CdataSection" = [ "CharacterData" "EventTarget" "Node" "Text" ];
+          "ChannelMergerNode" = [ "AudioNode" "EventTarget" ];
+          "ChannelSplitterNode" = [ "AudioNode" "EventTarget" ];
+          "CharacterData" = [ "EventTarget" "Node" ];
+          "ChromeWorker" = [ "EventTarget" "Worker" ];
+          "Clipboard" = [ "EventTarget" ];
+          "ClipboardEvent" = [ "Event" ];
+          "CloseEvent" = [ "Event" ];
+          "Comment" = [ "CharacterData" "EventTarget" "Node" ];
+          "CompositionEvent" = [ "Event" "UiEvent" ];
+          "ConstantSourceNode" = [ "AudioNode" "AudioScheduledSourceNode" "EventTarget" ];
+          "ConvolverNode" = [ "AudioNode" "EventTarget" ];
+          "CssAnimation" = [ "Animation" "EventTarget" ];
+          "CssConditionRule" = [ "CssGroupingRule" "CssRule" ];
+          "CssCounterStyleRule" = [ "CssRule" ];
+          "CssFontFaceRule" = [ "CssRule" ];
+          "CssFontFeatureValuesRule" = [ "CssRule" ];
+          "CssGroupingRule" = [ "CssRule" ];
+          "CssImportRule" = [ "CssRule" ];
+          "CssKeyframeRule" = [ "CssRule" ];
+          "CssKeyframesRule" = [ "CssRule" ];
+          "CssMediaRule" = [ "CssConditionRule" "CssGroupingRule" "CssRule" ];
+          "CssNamespaceRule" = [ "CssRule" ];
+          "CssPageRule" = [ "CssRule" ];
+          "CssStyleRule" = [ "CssRule" ];
+          "CssStyleSheet" = [ "StyleSheet" ];
+          "CssSupportsRule" = [ "CssConditionRule" "CssGroupingRule" "CssRule" ];
+          "CssTransition" = [ "Animation" "EventTarget" ];
+          "CustomEvent" = [ "Event" ];
+          "DedicatedWorkerGlobalScope" = [ "EventTarget" "WorkerGlobalScope" ];
+          "DelayNode" = [ "AudioNode" "EventTarget" ];
+          "DeviceLightEvent" = [ "Event" ];
+          "DeviceMotionEvent" = [ "Event" ];
+          "DeviceOrientationEvent" = [ "Event" ];
+          "DeviceProximityEvent" = [ "Event" ];
+          "Document" = [ "EventTarget" "Node" ];
+          "DocumentFragment" = [ "EventTarget" "Node" ];
+          "DocumentTimeline" = [ "AnimationTimeline" ];
+          "DocumentType" = [ "EventTarget" "Node" ];
+          "DomMatrix" = [ "DomMatrixReadOnly" ];
+          "DomPoint" = [ "DomPointReadOnly" ];
+          "DomRect" = [ "DomRectReadOnly" ];
+          "DomRequest" = [ "EventTarget" ];
+          "DragEvent" = [ "Event" "MouseEvent" "UiEvent" ];
+          "DynamicsCompressorNode" = [ "AudioNode" "EventTarget" ];
+          "Element" = [ "EventTarget" "Node" ];
+          "ErrorEvent" = [ "Event" ];
+          "EventSource" = [ "EventTarget" ];
+          "ExtendableEvent" = [ "Event" ];
+          "ExtendableMessageEvent" = [ "Event" "ExtendableEvent" ];
+          "FetchEvent" = [ "Event" "ExtendableEvent" ];
+          "FetchObserver" = [ "EventTarget" ];
+          "File" = [ "Blob" ];
+          "FileReader" = [ "EventTarget" ];
+          "FileSystemDirectoryEntry" = [ "FileSystemEntry" ];
+          "FileSystemFileEntry" = [ "FileSystemEntry" ];
+          "FocusEvent" = [ "Event" "UiEvent" ];
+          "FontFaceSet" = [ "EventTarget" ];
+          "FontFaceSetLoadEvent" = [ "Event" ];
+          "GainNode" = [ "AudioNode" "EventTarget" ];
+          "GamepadAxisMoveEvent" = [ "Event" "GamepadEvent" ];
+          "GamepadButtonEvent" = [ "Event" "GamepadEvent" ];
+          "GamepadEvent" = [ "Event" ];
+          "GpuDevice" = [ "EventTarget" ];
+          "GpuUncapturedErrorEvent" = [ "Event" ];
+          "HashChangeEvent" = [ "Event" ];
+          "Hid" = [ "EventTarget" ];
+          "HidConnectionEvent" = [ "Event" ];
+          "HidDevice" = [ "EventTarget" ];
+          "HidInputReportEvent" = [ "Event" ];
+          "HtmlAnchorElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlAreaElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlAudioElement" = [ "Element" "EventTarget" "HtmlElement" "HtmlMediaElement" "Node" ];
+          "HtmlBaseElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlBodyElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlBrElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlButtonElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlCanvasElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlDListElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlDataElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlDataListElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlDetailsElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlDialogElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlDirectoryElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlDivElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlDocument" = [ "Document" "EventTarget" "Node" ];
+          "HtmlElement" = [ "Element" "EventTarget" "Node" ];
+          "HtmlEmbedElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlFieldSetElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlFontElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlFormControlsCollection" = [ "HtmlCollection" ];
+          "HtmlFormElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlFrameElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlFrameSetElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlHeadElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlHeadingElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlHrElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlHtmlElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlIFrameElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlImageElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlInputElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlLabelElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlLegendElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlLiElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlLinkElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlMapElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlMediaElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlMenuElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlMenuItemElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlMetaElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlMeterElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlModElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlOListElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlObjectElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlOptGroupElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlOptionElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlOptionsCollection" = [ "HtmlCollection" ];
+          "HtmlOutputElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlParagraphElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlParamElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlPictureElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlPreElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlProgressElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlQuoteElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlScriptElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlSelectElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlSlotElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlSourceElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlSpanElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlStyleElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlTableCaptionElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlTableCellElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlTableColElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlTableElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlTableRowElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlTableSectionElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlTemplateElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlTextAreaElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlTimeElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlTitleElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlTrackElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlUListElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlUnknownElement" = [ "Element" "EventTarget" "HtmlElement" "Node" ];
+          "HtmlVideoElement" = [ "Element" "EventTarget" "HtmlElement" "HtmlMediaElement" "Node" ];
+          "IdbCursorWithValue" = [ "IdbCursor" ];
+          "IdbDatabase" = [ "EventTarget" ];
+          "IdbFileHandle" = [ "EventTarget" ];
+          "IdbFileRequest" = [ "DomRequest" "EventTarget" ];
+          "IdbLocaleAwareKeyRange" = [ "IdbKeyRange" ];
+          "IdbMutableFile" = [ "EventTarget" ];
+          "IdbOpenDbRequest" = [ "EventTarget" "IdbRequest" ];
+          "IdbRequest" = [ "EventTarget" ];
+          "IdbTransaction" = [ "EventTarget" ];
+          "IdbVersionChangeEvent" = [ "Event" ];
+          "IirFilterNode" = [ "AudioNode" "EventTarget" ];
+          "ImageCaptureErrorEvent" = [ "Event" ];
+          "InputEvent" = [ "Event" "UiEvent" ];
+          "KeyboardEvent" = [ "Event" "UiEvent" ];
+          "KeyframeEffect" = [ "AnimationEffect" ];
+          "LocalMediaStream" = [ "EventTarget" "MediaStream" ];
+          "MediaDevices" = [ "EventTarget" ];
+          "MediaElementAudioSourceNode" = [ "AudioNode" "EventTarget" ];
+          "MediaEncryptedEvent" = [ "Event" ];
+          "MediaKeyError" = [ "Event" ];
+          "MediaKeyMessageEvent" = [ "Event" ];
+          "MediaKeySession" = [ "EventTarget" ];
+          "MediaQueryList" = [ "EventTarget" ];
+          "MediaQueryListEvent" = [ "Event" ];
+          "MediaRecorder" = [ "EventTarget" ];
+          "MediaRecorderErrorEvent" = [ "Event" ];
+          "MediaSource" = [ "EventTarget" ];
+          "MediaStream" = [ "EventTarget" ];
+          "MediaStreamAudioDestinationNode" = [ "AudioNode" "EventTarget" ];
+          "MediaStreamAudioSourceNode" = [ "AudioNode" "EventTarget" ];
+          "MediaStreamEvent" = [ "Event" ];
+          "MediaStreamTrack" = [ "EventTarget" ];
+          "MediaStreamTrackEvent" = [ "Event" ];
+          "MessageEvent" = [ "Event" ];
+          "MessagePort" = [ "EventTarget" ];
+          "MidiAccess" = [ "EventTarget" ];
+          "MidiConnectionEvent" = [ "Event" ];
+          "MidiInput" = [ "EventTarget" "MidiPort" ];
+          "MidiMessageEvent" = [ "Event" ];
+          "MidiOutput" = [ "EventTarget" "MidiPort" ];
+          "MidiPort" = [ "EventTarget" ];
+          "MouseEvent" = [ "Event" "UiEvent" ];
+          "MouseScrollEvent" = [ "Event" "MouseEvent" "UiEvent" ];
+          "MutationEvent" = [ "Event" ];
+          "NetworkInformation" = [ "EventTarget" ];
+          "Node" = [ "EventTarget" ];
+          "Notification" = [ "EventTarget" ];
+          "NotificationEvent" = [ "Event" "ExtendableEvent" ];
+          "OfflineAudioCompletionEvent" = [ "Event" ];
+          "OfflineAudioContext" = [ "BaseAudioContext" "EventTarget" ];
+          "OfflineResourceList" = [ "EventTarget" ];
+          "OffscreenCanvas" = [ "EventTarget" ];
+          "OscillatorNode" = [ "AudioNode" "AudioScheduledSourceNode" "EventTarget" ];
+          "PageTransitionEvent" = [ "Event" ];
+          "PaintWorkletGlobalScope" = [ "WorkletGlobalScope" ];
+          "PannerNode" = [ "AudioNode" "EventTarget" ];
+          "PaymentMethodChangeEvent" = [ "Event" "PaymentRequestUpdateEvent" ];
+          "PaymentRequestUpdateEvent" = [ "Event" ];
+          "Performance" = [ "EventTarget" ];
+          "PerformanceMark" = [ "PerformanceEntry" ];
+          "PerformanceMeasure" = [ "PerformanceEntry" ];
+          "PerformanceNavigationTiming" = [ "PerformanceEntry" "PerformanceResourceTiming" ];
+          "PerformanceResourceTiming" = [ "PerformanceEntry" ];
+          "PermissionStatus" = [ "EventTarget" ];
+          "PointerEvent" = [ "Event" "MouseEvent" "UiEvent" ];
+          "PopStateEvent" = [ "Event" ];
+          "PopupBlockedEvent" = [ "Event" ];
+          "PresentationAvailability" = [ "EventTarget" ];
+          "PresentationConnection" = [ "EventTarget" ];
+          "PresentationConnectionAvailableEvent" = [ "Event" ];
+          "PresentationConnectionCloseEvent" = [ "Event" ];
+          "PresentationConnectionList" = [ "EventTarget" ];
+          "PresentationRequest" = [ "EventTarget" ];
+          "ProcessingInstruction" = [ "CharacterData" "EventTarget" "Node" ];
+          "ProgressEvent" = [ "Event" ];
+          "PromiseRejectionEvent" = [ "Event" ];
+          "PublicKeyCredential" = [ "Credential" ];
+          "PushEvent" = [ "Event" "ExtendableEvent" ];
+          "RadioNodeList" = [ "NodeList" ];
+          "RtcDataChannel" = [ "EventTarget" ];
+          "RtcDataChannelEvent" = [ "Event" ];
+          "RtcPeerConnection" = [ "EventTarget" ];
+          "RtcPeerConnectionIceEvent" = [ "Event" ];
+          "RtcTrackEvent" = [ "Event" ];
+          "RtcdtmfSender" = [ "EventTarget" ];
+          "RtcdtmfToneChangeEvent" = [ "Event" ];
+          "Screen" = [ "EventTarget" ];
+          "ScreenOrientation" = [ "EventTarget" ];
+          "ScriptProcessorNode" = [ "AudioNode" "EventTarget" ];
+          "ScrollAreaEvent" = [ "Event" "UiEvent" ];
+          "SecurityPolicyViolationEvent" = [ "Event" ];
+          "ServiceWorker" = [ "EventTarget" ];
+          "ServiceWorkerContainer" = [ "EventTarget" ];
+          "ServiceWorkerGlobalScope" = [ "EventTarget" "WorkerGlobalScope" ];
+          "ServiceWorkerRegistration" = [ "EventTarget" ];
+          "ShadowRoot" = [ "DocumentFragment" "EventTarget" "Node" ];
+          "SharedWorker" = [ "EventTarget" ];
+          "SharedWorkerGlobalScope" = [ "EventTarget" "WorkerGlobalScope" ];
+          "SourceBuffer" = [ "EventTarget" ];
+          "SourceBufferList" = [ "EventTarget" ];
+          "SpeechRecognition" = [ "EventTarget" ];
+          "SpeechRecognitionError" = [ "Event" ];
+          "SpeechRecognitionEvent" = [ "Event" ];
+          "SpeechSynthesis" = [ "EventTarget" ];
+          "SpeechSynthesisErrorEvent" = [ "Event" "SpeechSynthesisEvent" ];
+          "SpeechSynthesisEvent" = [ "Event" ];
+          "SpeechSynthesisUtterance" = [ "EventTarget" ];
+          "StereoPannerNode" = [ "AudioNode" "EventTarget" ];
+          "StorageEvent" = [ "Event" ];
+          "SvgAnimateElement" = [ "Element" "EventTarget" "Node" "SvgAnimationElement" "SvgElement" ];
+          "SvgAnimateMotionElement" = [ "Element" "EventTarget" "Node" "SvgAnimationElement" "SvgElement" ];
+          "SvgAnimateTransformElement" = [ "Element" "EventTarget" "Node" "SvgAnimationElement" "SvgElement" ];
+          "SvgAnimationElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgCircleElement" = [ "Element" "EventTarget" "Node" "SvgElement" "SvgGeometryElement" "SvgGraphicsElement" ];
+          "SvgClipPathElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgComponentTransferFunctionElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgDefsElement" = [ "Element" "EventTarget" "Node" "SvgElement" "SvgGraphicsElement" ];
+          "SvgDescElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgElement" = [ "Element" "EventTarget" "Node" ];
+          "SvgEllipseElement" = [ "Element" "EventTarget" "Node" "SvgElement" "SvgGeometryElement" "SvgGraphicsElement" ];
+          "SvgFilterElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgForeignObjectElement" = [ "Element" "EventTarget" "Node" "SvgElement" "SvgGraphicsElement" ];
+          "SvgGeometryElement" = [ "Element" "EventTarget" "Node" "SvgElement" "SvgGraphicsElement" ];
+          "SvgGradientElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgGraphicsElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgImageElement" = [ "Element" "EventTarget" "Node" "SvgElement" "SvgGraphicsElement" ];
+          "SvgLineElement" = [ "Element" "EventTarget" "Node" "SvgElement" "SvgGeometryElement" "SvgGraphicsElement" ];
+          "SvgLinearGradientElement" = [ "Element" "EventTarget" "Node" "SvgElement" "SvgGradientElement" ];
+          "SvgMarkerElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgMaskElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgMetadataElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgPathElement" = [ "Element" "EventTarget" "Node" "SvgElement" "SvgGeometryElement" "SvgGraphicsElement" ];
+          "SvgPathSegArcAbs" = [ "SvgPathSeg" ];
+          "SvgPathSegArcRel" = [ "SvgPathSeg" ];
+          "SvgPathSegClosePath" = [ "SvgPathSeg" ];
+          "SvgPathSegCurvetoCubicAbs" = [ "SvgPathSeg" ];
+          "SvgPathSegCurvetoCubicRel" = [ "SvgPathSeg" ];
+          "SvgPathSegCurvetoCubicSmoothAbs" = [ "SvgPathSeg" ];
+          "SvgPathSegCurvetoCubicSmoothRel" = [ "SvgPathSeg" ];
+          "SvgPathSegCurvetoQuadraticAbs" = [ "SvgPathSeg" ];
+          "SvgPathSegCurvetoQuadraticRel" = [ "SvgPathSeg" ];
+          "SvgPathSegCurvetoQuadraticSmoothAbs" = [ "SvgPathSeg" ];
+          "SvgPathSegCurvetoQuadraticSmoothRel" = [ "SvgPathSeg" ];
+          "SvgPathSegLinetoAbs" = [ "SvgPathSeg" ];
+          "SvgPathSegLinetoHorizontalAbs" = [ "SvgPathSeg" ];
+          "SvgPathSegLinetoHorizontalRel" = [ "SvgPathSeg" ];
+          "SvgPathSegLinetoRel" = [ "SvgPathSeg" ];
+          "SvgPathSegLinetoVerticalAbs" = [ "SvgPathSeg" ];
+          "SvgPathSegLinetoVerticalRel" = [ "SvgPathSeg" ];
+          "SvgPathSegMovetoAbs" = [ "SvgPathSeg" ];
+          "SvgPathSegMovetoRel" = [ "SvgPathSeg" ];
+          "SvgPatternElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgPolygonElement" = [ "Element" "EventTarget" "Node" "SvgElement" "SvgGeometryElement" "SvgGraphicsElement" ];
+          "SvgPolylineElement" = [ "Element" "EventTarget" "Node" "SvgElement" "SvgGeometryElement" "SvgGraphicsElement" ];
+          "SvgRadialGradientElement" = [ "Element" "EventTarget" "Node" "SvgElement" "SvgGradientElement" ];
+          "SvgRectElement" = [ "Element" "EventTarget" "Node" "SvgElement" "SvgGeometryElement" "SvgGraphicsElement" ];
+          "SvgScriptElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgSetElement" = [ "Element" "EventTarget" "Node" "SvgAnimationElement" "SvgElement" ];
+          "SvgStopElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgStyleElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgSwitchElement" = [ "Element" "EventTarget" "Node" "SvgElement" "SvgGraphicsElement" ];
+          "SvgSymbolElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgTextContentElement" = [ "Element" "EventTarget" "Node" "SvgElement" "SvgGraphicsElement" ];
+          "SvgTextElement" = [ "Element" "EventTarget" "Node" "SvgElement" "SvgGraphicsElement" "SvgTextContentElement" "SvgTextPositioningElement" ];
+          "SvgTextPathElement" = [ "Element" "EventTarget" "Node" "SvgElement" "SvgGraphicsElement" "SvgTextContentElement" ];
+          "SvgTextPositioningElement" = [ "Element" "EventTarget" "Node" "SvgElement" "SvgGraphicsElement" "SvgTextContentElement" ];
+          "SvgTitleElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgUseElement" = [ "Element" "EventTarget" "Node" "SvgElement" "SvgGraphicsElement" ];
+          "SvgViewElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgaElement" = [ "Element" "EventTarget" "Node" "SvgElement" "SvgGraphicsElement" ];
+          "SvgfeBlendElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgfeColorMatrixElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgfeComponentTransferElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgfeCompositeElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgfeConvolveMatrixElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgfeDiffuseLightingElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgfeDisplacementMapElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgfeDistantLightElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgfeDropShadowElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgfeFloodElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgfeFuncAElement" = [ "Element" "EventTarget" "Node" "SvgComponentTransferFunctionElement" "SvgElement" ];
+          "SvgfeFuncBElement" = [ "Element" "EventTarget" "Node" "SvgComponentTransferFunctionElement" "SvgElement" ];
+          "SvgfeFuncGElement" = [ "Element" "EventTarget" "Node" "SvgComponentTransferFunctionElement" "SvgElement" ];
+          "SvgfeFuncRElement" = [ "Element" "EventTarget" "Node" "SvgComponentTransferFunctionElement" "SvgElement" ];
+          "SvgfeGaussianBlurElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgfeImageElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgfeMergeElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgfeMergeNodeElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgfeMorphologyElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgfeOffsetElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgfePointLightElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgfeSpecularLightingElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgfeSpotLightElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgfeTileElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgfeTurbulenceElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvggElement" = [ "Element" "EventTarget" "Node" "SvgElement" "SvgGraphicsElement" ];
+          "SvgmPathElement" = [ "Element" "EventTarget" "Node" "SvgElement" ];
+          "SvgsvgElement" = [ "Element" "EventTarget" "Node" "SvgElement" "SvgGraphicsElement" ];
+          "SvgtSpanElement" = [ "Element" "EventTarget" "Node" "SvgElement" "SvgGraphicsElement" "SvgTextContentElement" "SvgTextPositioningElement" ];
+          "TcpServerSocket" = [ "EventTarget" ];
+          "TcpServerSocketEvent" = [ "Event" ];
+          "TcpSocket" = [ "EventTarget" ];
+          "TcpSocketErrorEvent" = [ "Event" ];
+          "TcpSocketEvent" = [ "Event" ];
+          "Text" = [ "CharacterData" "EventTarget" "Node" ];
+          "TextTrack" = [ "EventTarget" ];
+          "TextTrackCue" = [ "EventTarget" ];
+          "TextTrackList" = [ "EventTarget" ];
+          "TimeEvent" = [ "Event" ];
+          "TouchEvent" = [ "Event" "UiEvent" ];
+          "TrackEvent" = [ "Event" ];
+          "TransitionEvent" = [ "Event" ];
+          "UiEvent" = [ "Event" ];
+          "Usb" = [ "EventTarget" ];
+          "UsbConnectionEvent" = [ "Event" ];
+          "UsbPermissionResult" = [ "EventTarget" "PermissionStatus" ];
+          "UserProximityEvent" = [ "Event" ];
+          "ValueEvent" = [ "Event" ];
+          "VideoStreamTrack" = [ "EventTarget" "MediaStreamTrack" ];
+          "VideoTrackList" = [ "EventTarget" ];
+          "VrDisplay" = [ "EventTarget" ];
+          "VttCue" = [ "EventTarget" "TextTrackCue" ];
+          "WakeLockSentinel" = [ "EventTarget" ];
+          "WaveShaperNode" = [ "AudioNode" "EventTarget" ];
+          "WebGlContextEvent" = [ "Event" ];
+          "WebKitCssMatrix" = [ "DomMatrix" "DomMatrixReadOnly" ];
+          "WebSocket" = [ "EventTarget" ];
+          "WheelEvent" = [ "Event" "MouseEvent" "UiEvent" ];
+          "Window" = [ "EventTarget" ];
+          "WindowClient" = [ "Client" ];
+          "Worker" = [ "EventTarget" ];
+          "WorkerDebuggerGlobalScope" = [ "EventTarget" ];
+          "WorkerGlobalScope" = [ "EventTarget" ];
+          "XmlDocument" = [ "Document" "EventTarget" "Node" ];
+          "XmlHttpRequest" = [ "EventTarget" "XmlHttpRequestEventTarget" ];
+          "XmlHttpRequestEventTarget" = [ "EventTarget" ];
+          "XmlHttpRequestUpload" = [ "EventTarget" "XmlHttpRequestEventTarget" ];
+          "Xr" = [ "EventTarget" ];
+          "XrBoundedReferenceSpace" = [ "EventTarget" "XrReferenceSpace" "XrSpace" ];
+          "XrInputSourceEvent" = [ "Event" ];
+          "XrInputSourcesChangeEvent" = [ "Event" ];
+          "XrReferenceSpace" = [ "EventTarget" "XrSpace" ];
+          "XrReferenceSpaceEvent" = [ "Event" ];
+          "XrSession" = [ "EventTarget" ];
+          "XrSessionEvent" = [ "Event" ];
+          "XrSpace" = [ "EventTarget" ];
+          "XrViewerPose" = [ "XrPose" ];
+        };
+        resolvedDefaultFeatures = [ "CanvasRenderingContext2d" "Document" "DomRect" "DomRectReadOnly" "Element" "EventTarget" "HtmlCanvasElement" "HtmlElement" "Node" "Window" ];
       };
       "winapi" = rec {
         crateName = "winapi";

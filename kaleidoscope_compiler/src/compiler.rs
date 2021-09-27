@@ -60,25 +60,30 @@ impl Compiler {
     }
 
     fn parse(&mut self, input: &str) -> Result<(), ApplicationError> {
-        let located_slice = LocatedSlice::new(input);
-        let parser_result =
-            parser::parse::<LocatedSlice, parser::error::Error<LocatedSlice>, Position>(
-                located_slice,
-            );
+        // let located_slice = LocatedSlice::new(input);
+        // let parser_result =
+        //     parser::parse::<LocatedSlice, parser::error::Error<LocatedSlice>, Position>(
+        //         located_slice,
+        //     ).map_err(|e| e.to_error());
+        let parser_result = kaleidoscope_parser_pest::parse::<Position>(input);
         match parser_result {
-            Ok((_, ast_list)) => {
-                writeln!(&mut self.stdout, "{:?}", ast_list)?;
-                return self.codegen(input, &ast_list);
+            Ok(ast_list) => {
+                writeln!(&mut self.stdout, "{:#?}", ast_list)?;
+                return self.codegen(input, ast_list);
             }
-            Err(Some(err)) => self.print_error(err.to_error(), input)?,
-            Err(None) => {}
+            // Err(err) => writeln!(
+            //     &mut self.stdout,
+            //     "{$red+intense+bold}error:{/$}\n{:#?}",
+            //     err
+            // )?,
+            Err(err) => self.print_error(err, input)?,
         }
         Ok(())
     }
     fn codegen(
         &mut self,
         input: &str,
-        ast_list: &Vec<AST<Position>>,
+        ast_list: Vec<AST<Position>>,
     ) -> Result<(), ApplicationError> {
         let ctx = self.codegen_context.clone();
         let module = codegen::codegen(&ctx, &ast_list);
@@ -88,7 +93,6 @@ impl Compiler {
                 for err in errors {
                     self.print_error(codegen_error_to_error(&err), input)?;
                 }
-                // writeln!(&mut self.stdout, "{[red+bold]:?}", err)?;
             }
         }
         Ok(())

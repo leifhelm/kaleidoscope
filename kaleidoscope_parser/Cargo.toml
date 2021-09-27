@@ -9,3 +9,10 @@ kaleidoscope_ast = { path = "../kaleidoscope_ast" }
 kaleidoscope_error = { path = "../kaleidoscope_error" }
 nom = "^7.0"
 nom-unicode = "^0.3"
+
+[dev-dependencies]
+criterion = "^0.3"
+
+[[bench]]
+name = "file"
+harness = false
