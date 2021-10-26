@@ -79,16 +79,6 @@ rec {
       # File a bug if you depend on any for non-debug work!
       debug = internal.debugCrate { inherit packageId; };
     };
-    "kaleidoscope_parser" = rec {
-      packageId = "kaleidoscope_parser";
-      build = internal.buildRustCrateWithFeatures {
-        packageId = "kaleidoscope_parser";
-      };
-
-      # Debug support which might change between releases.
-      # File a bug if you depend on any for non-debug work!
-      debug = internal.debugCrate { inherit packageId; };
-    };
     "kaleidoscope_parser_pest" = rec {
       packageId = "kaleidoscope_parser_pest";
       build = internal.buildRustCrateWithFeatures {
@@ -307,9 +297,9 @@ rec {
       };
       "bumpalo" = rec {
         crateName = "bumpalo";
-        version = "3.7.1";
+        version = "3.8.0";
         edition = "2018";
-        sha256 = "0f55q7915m5dx5cgn5cli72z0gk18nf2757rd63lky4ypzvngpyr";
+        sha256 = "0v5vck40wmz95d48gq0z3al32vy1yic8fihjkb0sfh4h7862c7lg";
         authors = [
           "Nick Fitzgerald <fitzgen@gmail.com>"
         ];
@@ -409,10 +399,10 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.0.70";
+        version = "1.0.71";
         edition = "2018";
         crateBin = [];
-        sha256 = "1h0dm9pr7l2g6228pzl5fawd43s3zjkfzxvhvczgm154nvj6qsnj";
+        sha256 = "1pgflzb5dc9pli1lfwfv5jksmz57j15iqqxqpdbnjq4lclfnihkr";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -874,9 +864,9 @@ rec {
       };
       "half" = rec {
         crateName = "half";
-        version = "1.7.1";
+        version = "1.8.2";
         edition = "2018";
-        sha256 = "1wzavaaaa2jwkm4i1dbglmwjfsdhn4n73wrkbdzllaynlams5b32";
+        sha256 = "1mqbmx2m9qd4lslkb42fzgldsklhv9c4bxsc8j82r80d8m24mfza";
         authors = [
           "Kathryn Long <squeeself@gmail.com>"
         ];
@@ -912,8 +902,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/TheDan64/inkwell";
-          rev = "d018ee22e4b5241dec2bc32ca67f3d4caaecee47";
-          sha256 = "1iw9fring0b4ci8qjny72bani8w10xs9cxmqvf4745cr9p7lkqry";
+          rev = "bec0222fbd52c04fd575aebab3d9127a291a63b4";
+          sha256 = "03f0qii3g1cl6bsnpmgc944p66naxyxklgkzms8xgm2f990js59p";
         };
         authors = [
           "Daniel Kolsoi <thadan64@gmail.com>"
@@ -991,8 +981,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/TheDan64/inkwell";
-          rev = "d018ee22e4b5241dec2bc32ca67f3d4caaecee47";
-          sha256 = "1iw9fring0b4ci8qjny72bani8w10xs9cxmqvf4745cr9p7lkqry";
+          rev = "bec0222fbd52c04fd575aebab3d9127a291a63b4";
+          sha256 = "03f0qii3g1cl6bsnpmgc944p66naxyxklgkzms8xgm2f990js59p";
         };
         procMacro = true;
         authors = [
@@ -1018,9 +1008,9 @@ rec {
       };
       "instant" = rec {
         crateName = "instant";
-        version = "0.1.10";
+        version = "0.1.12";
         edition = "2018";
-        sha256 = "0ka75wmkh22bkxjw5smhmlwl3xpqnj2xv50w03pmgl892a5k5q5y";
+        sha256 = "0b2bx5qdlwayriidhrag8vhy10kdfimfhmb3jnjmsz2h9j1bwnvs";
         authors = [
           "sebcrozet <developer@crozet.re>"
         ];
@@ -1031,7 +1021,6 @@ rec {
           }
         ];
         features = {
-          "now" = [ "time" ];
           "wasm-bindgen" = [ "js-sys" "wasm-bindgen_rs" "web-sys" ];
         };
       };
@@ -1123,10 +1112,6 @@ rec {
             features = [ "bunt" "codespan-reporting" ];
           }
           {
-            name = "kaleidoscope_parser";
-            packageId = "kaleidoscope_parser";
-          }
-          {
             name = "kaleidoscope_parser_pest";
             packageId = "kaleidoscope_parser_pest";
           }
@@ -1191,40 +1176,6 @@ rec {
 
         resolvedDefaultFeatures = [ "bunt" "codespan-reporting" ];
       };
-      "kaleidoscope_parser" = rec {
-        crateName = "kaleidoscope_parser";
-        version = "0.1.0";
-        edition = "2018";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./kaleidoscope_parser; };
-        authors = [
-          "Jakob Leifhelm <jakob.leifhelm@gmail.com>"
-        ];
-        dependencies = [
-          {
-            name = "kaleidoscope_ast";
-            packageId = "kaleidoscope_ast";
-          }
-          {
-            name = "kaleidoscope_error";
-            packageId = "kaleidoscope_error";
-          }
-          {
-            name = "nom";
-            packageId = "nom";
-          }
-          {
-            name = "nom-unicode";
-            packageId = "nom-unicode";
-          }
-        ];
-        devDependencies = [
-          {
-            name = "criterion";
-            packageId = "criterion";
-          }
-        ];
-
-      };
       "kaleidoscope_parser_pest" = rec {
         crateName = "kaleidoscope_parser_pest";
         version = "0.1.0";
@@ -1242,10 +1193,6 @@ rec {
             name = "kaleidoscope_error";
             packageId = "kaleidoscope_error";
             features = [ "bunt" "codespan-reporting" ];
-          }
-          {
-            name = "kaleidoscope_parser";
-            packageId = "kaleidoscope_parser";
           }
           {
             name = "lexical-parse-float";
@@ -1286,9 +1233,9 @@ rec {
       };
       "lexical-parse-float" = rec {
         crateName = "lexical-parse-float";
-        version = "0.8.0";
+        version = "0.8.2";
         edition = "2018";
-        sha256 = "0pz4b3gj2qk447g2mlmqlfgb7rym796c9b3cnhxs6ldq5k402fk7";
+        sha256 = "03mzjx8k2jzv2vbl1xb589p9zfs5i2m23vcmm6fjsxps0k86dl5l";
         authors = [
           "Alex Huszagh <ahuszagh@gmail.com>"
         ];
@@ -1382,9 +1329,9 @@ rec {
       };
       "libc" = rec {
         crateName = "libc";
-        version = "0.2.102";
+        version = "0.2.105";
         edition = "2015";
-        sha256 = "00z1f4hypdkbvajk6rj9yqjk7k4acgg5yzi64flg7z2bk27sr9d2";
+        sha256 = "04rhxxjvpd106b2yw2pxa4lcnm6wbk5nnx03b61ma3b26qhmg7c6";
         authors = [
           "The Rust Project Developers"
         ];
@@ -1513,7 +1460,7 @@ rec {
           "rustc-dep-of-std" = [ "core" "compiler_builtins" ];
           "use_std" = [ "std" ];
         };
-        resolvedDefaultFeatures = [ "default" "std" "use_std" ];
+        resolvedDefaultFeatures = [ "default" "std" ];
       };
       "memoffset" = rec {
         crateName = "memoffset";
@@ -1532,72 +1479,6 @@ rec {
         features = {
         };
         resolvedDefaultFeatures = [ "default" ];
-      };
-      "minimal-lexical" = rec {
-        crateName = "minimal-lexical";
-        version = "0.1.3";
-        edition = "2018";
-        sha256 = "0v9c06nbn61w7cdz2iihgqlppzzvn72wcvv3b2yy0s2gjx45k0qc";
-        authors = [
-          "Alex Huszagh <ahuszagh@gmail.com>"
-        ];
-        features = {
-          "default" = [ "std" ];
-        };
-        resolvedDefaultFeatures = [ "default" "std" ];
-      };
-      "nom" = rec {
-        crateName = "nom";
-        version = "7.0.0";
-        edition = "2018";
-        sha256 = "1ha24yclw4m74gi9p5c3d68rhrrcb7qvkgicz153p5cahck9vzbz";
-        authors = [
-          "contact@geoffroycouprie.com"
-        ];
-        dependencies = [
-          {
-            name = "memchr";
-            packageId = "memchr";
-            usesDefaultFeatures = false;
-          }
-          {
-            name = "minimal-lexical";
-            packageId = "minimal-lexical";
-          }
-        ];
-        buildDependencies = [
-          {
-            name = "version_check";
-            packageId = "version_check";
-          }
-        ];
-        features = {
-          "default" = [ "std" ];
-          "std" = [ "alloc" "memchr/use_std" ];
-        };
-        resolvedDefaultFeatures = [ "alloc" "default" "std" ];
-      };
-      "nom-unicode" = rec {
-        crateName = "nom-unicode";
-        version = "0.3.0";
-        edition = "2018";
-        sha256 = "1zhzfxhc42hpyszdyimijf080fpikng34rf1ab3l15xbf56kmh55";
-        authors = [
-          "Alex Huszagh <ahuszagh@gmail.com>"
-        ];
-        dependencies = [
-          {
-            name = "nom";
-            packageId = "nom";
-            usesDefaultFeatures = false;
-          }
-        ];
-        features = {
-          "alloc" = [ "nom/alloc" ];
-          "default" = [ "std" ];
-          "std" = [ "nom/std" ];
-        };
-        resolvedDefaultFeatures = [ "default" "std" ];
       };
       "num-traits" = rec {
         crateName = "num-traits";
@@ -1924,9 +1805,9 @@ rec {
       };
       "proc-macro2" = rec {
         crateName = "proc-macro2";
-        version = "1.0.29";
+        version = "1.0.30";
         edition = "2018";
-        sha256 = "0gfj25ksq90ifcssfnwv46v856sxd885wmm9bhrj1ays9xfi1xdr";
+        sha256 = "0w7fc5mvk7jsfgn1pmiphkvjd0min12zj1y0l1zqpg37pj73bhzd";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
           "David Tolnay <dtolnay@gmail.com>"
@@ -1944,9 +1825,9 @@ rec {
       };
       "quote" = rec {
         crateName = "quote";
-        version = "1.0.9";
+        version = "1.0.10";
         edition = "2018";
-        sha256 = "19rjmfqzk26rxbgxy5j2ckqc2v12sw2xw8l4gi8bzpn2bmsbkl63";
+        sha256 = "01ff7a76f871ggnby57iagw6499vci4bihcr11g6bqzjlp38rg1q";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -2368,13 +2249,14 @@ rec {
       };
       "smallvec" = rec {
         crateName = "smallvec";
-        version = "1.6.1";
+        version = "1.7.0";
         edition = "2018";
-        sha256 = "0kk08axr0ybfbjzk65a41k84mb6sfhyajmfndaka9igkx34kf3zy";
+        sha256 = "02gka690j8l12gl50ifg7axqnx1m6v6d1byaq0wl3fx66p3vdjhy";
         authors = [
           "The Servo Project Developers"
         ];
         features = {
+          "const_new" = [ "const_generics" ];
         };
       };
       "static_assertions" = rec {
@@ -2400,9 +2282,9 @@ rec {
       };
       "syn" = rec {
         crateName = "syn";
-        version = "1.0.76";
+        version = "1.0.80";
         edition = "2018";
-        sha256 = "110vb9zy9fvijppwpalz5qh9g4g6y0m4vgrd4iaj0b1c83dhgwf6";
+        sha256 = "156i2pkz6rqic3zgfgq5wjhgy1gwmrm93aahsr8nv45x7xia246h";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -2590,16 +2472,6 @@ rec {
         features = {
           "eders" = [ "serde" ];
         };
-      };
-      "version_check" = rec {
-        crateName = "version_check";
-        version = "0.9.3";
-        edition = "2015";
-        sha256 = "1zmkcgj2m0pq0l4wnhrp1wl1lygf7x2h5p7pvjwc4719lnlxrv2z";
-        authors = [
-          "Sergio Benitez <sb@sergio.bz>"
-        ];
-
       };
       "walkdir" = rec {
         crateName = "walkdir";
