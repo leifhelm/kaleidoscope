@@ -27,10 +27,11 @@ pub struct Error {
 
 macro_rules! ranged_err {
     ($level:expr, $name:ident) => {
-        pub fn $name(range: Range<usize>, message: String) -> Self {
+        #[inline]
+        pub fn $name(range: Range<usize>, message: impl Into<String>) -> Self {
             Error {
                 range: Some(range),
-                message,
+                message: message.into(),
                 error_level: $level,
             }
         }
@@ -38,10 +39,11 @@ macro_rules! ranged_err {
 }
 macro_rules! global_err {
     ($level:expr, $name:ident) => {
-        pub fn $name(message: String) -> Self {
+        #[inline]
+        pub fn $name(message: impl Into<String>) -> Self {
             Error {
                 range: None,
-                message,
+                message: message.into(),
                 error_level: $level,
             }
         }

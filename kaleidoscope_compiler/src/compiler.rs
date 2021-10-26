@@ -4,11 +4,10 @@ use crate::Logger;
 
 use bunt::termcolor::Buffer;
 
+use kaleidoscope_ast::AST;
 use kaleidoscope_codegen as codegen;
 use kaleidoscope_error as error;
-use kaleidoscope_parser as parser;
-use parser::ast::AST;
-use parser::located::LocatedSlice;
+use kaleidoscope_parser_pest as parser;
 use parser::located::Position;
 
 macro_rules! writeln {

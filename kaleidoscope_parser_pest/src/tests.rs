@@ -186,7 +186,7 @@ fn bad(rule: Rule, input: &str) {
 fn parse() {
     let input = "def //hi\nfoo(x) +0003.1415e-3\n";
     // let input = "extern foo(x, y,)";
-    match super::parse::<kaleidoscope_parser::located::Position>(input) {
+    match super::parse::<crate::located::Position>(input) {
         Err(err) => {
             err.print_codespan_reporting(
                 "tests::parse",

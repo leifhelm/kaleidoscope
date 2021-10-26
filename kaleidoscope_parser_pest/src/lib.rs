@@ -1,5 +1,7 @@
+pub mod located;
 #[cfg(test)]
 mod tests;
+use crate::located::Located;
 
 extern crate pest;
 #[macro_use]
@@ -8,11 +10,10 @@ extern crate pest_derive;
 use std::{fmt::Display, ops::Range};
 
 use kaleidoscope_ast::{
-    BinaryOperation, Call, Expression, Function, FunctionPrototype, Identifier, LiteralNumber, Op,
-    Operator, AST,
+    BinaryOperation, Call, Expr, Expression, Fun, FunProto, FunctionPrototype, Identifier,
+    IfExpression, LiteralNumber, Op, Operator, XWrapper, AST,
 };
 use kaleidoscope_error::Error;
-use kaleidoscope_parser::located::Located;
 use lexical_parse_float::FromLexical;
 use pest::{
     error::{ErrorVariant, InputLocation},
@@ -45,7 +46,6 @@ pub fn parse<L: Located>(input: &str) -> Result<Vec<AST<L>>, Error> {
 }
 
 fn handle_parser_error(error: pest::error::Error<Rule>) -> Error {
-    println!("{:?}", error);
     let range = match error.location {
         InputLocation::Pos(p) => p..p,
         InputLocation::Span((start, end)) => start..end,
@@ -111,33 +111,39 @@ fn toplevel<L: Located>(pair: Pair<Rule>) -> Result<AST<L>, Error> {
 
 fn function_decleration<L: Located>(pair: Pair<Rule>) -> Result<AST<L>, Error> {
     expect_rule(&pair, Rule::function_decleration)?;
-    println!("function_decleration {:#?}", pair);
+    let range = range_from_pair(&pair);
     let mut iter = pair.into();
     safe_next(&mut iter, Rule::def_keyword)?;
     let prototype = function_prototype(safe_next(&mut iter, Rule::function_prototype)?)?;
     let body = expression(safe_next(&mut iter, Rule::expression)?)?;
-    Ok(AST::Function(Function {
-        prototype,
-        body: Box::new(body),
-    }))
+    Ok(AST::Function(wrap(
+        Fun {
+            prototype,
+            body: Box::new(body),
+        },
+        range,
+    )))
 }
 
 fn function_prototype<L: Located>(pair: Pair<Rule>) -> Result<FunctionPrototype<L>, Error> {
     expect_rule(&pair, Rule::function_prototype)?;
+    let range = range_from_pair(&pair);
     let mut iter = pair.into();
     let name = function_name(safe_next(&mut iter, Rule::function_name)?)?;
     let args =
         function_prototype_arguments(safe_next(&mut iter, Rule::function_prototype_arguments)?)?;
-    Ok(FunctionPrototype { name, args })
+    Ok(wrap(FunProto { name, args }, range))
 }
 
 fn function_name<L: Located>(pair: Pair<Rule>) -> Result<Identifier<L>, Error> {
     expect_rule(&pair, Rule::function_name)?;
+    let range = range_from_pair(&pair);
     let name = String::from(pair.as_str());
-    Ok(Identifier::new(name, Located::new(range_from_pair(&pair))))
+    Ok(wrap(name, range))
 }
 fn function_prototype_arguments<L: Located>(pair: Pair<Rule>) -> Result<Vec<Identifier<L>>, Error> {
     expect_rule(&pair, Rule::function_prototype_arguments)?;
+    range_from_pair(&pair);
     let mut args = Vec::with_capacity(4);
     for var in pair.into_inner() {
         args.push(variable_name(var)?);
@@ -146,12 +152,14 @@ fn function_prototype_arguments<L: Located>(pair: Pair<Rule>) -> Result<Vec<Iden
 }
 fn variable_name<L: Located>(pair: Pair<Rule>) -> Result<Identifier<L>, Error> {
     expect_rule(&pair, Rule::variable_name)?;
+    let range = range_from_pair(&pair);
     let name = String::from(pair.as_str());
-    Ok(Identifier::new(name, Located::new(range_from_pair(&pair))))
+    Ok(wrap(name, range))
 }
 
 fn extern_function<L: Located>(pair: Pair<Rule>) -> Result<AST<L>, Error> {
     expect_rule(&pair, Rule::extern_function)?;
+    range_from_pair(&pair);
     let mut iter = pair.into();
     safe_next(&mut iter, Rule::extern_keyword)?;
     let prototype = function_prototype(safe_next(&mut iter, Rule::function_prototype)?)?;
@@ -165,36 +173,60 @@ fn expression<L: Located>(pair: Pair<Rule>) -> Result<Expression<L>, Error> {
     while let Some(op) = iter.pairs.next() {
         let op = operator(op)?;
         let rhs = term(safe_next(&mut iter, Rule::term)?)?;
-        match lhs {
-            Expression::BinaryOperation(bin_op_lhs) => {
+        let XWrapper {
+            wrapped: lhs_expr,
+            extra: lhs_extra,
+        } = lhs;
+        match lhs_expr {
+            Expr::BinaryOperation(bin_op_lhs) => {
                 if bin_op_lhs.operation.wrapped < op.wrapped {
-                    lhs = Expression::BinaryOperation(Box::new(BinaryOperation {
-                        operation: op,
-                        left_hand_side: Expression::BinaryOperation(Box::new(BinaryOperation {
-                            operation: bin_op_lhs.operation,
-                            left_hand_side: bin_op_lhs.left_hand_side,
-                            right_hand_side: bin_op_lhs.right_hand_side,
-                        })),
-                        right_hand_side: rhs,
-                    }));
-                } else {
-                    lhs = Expression::BinaryOperation(Box::new(BinaryOperation {
-                        operation: bin_op_lhs.operation,
-                        left_hand_side: bin_op_lhs.left_hand_side,
-                        right_hand_side: Expression::BinaryOperation(Box::new(BinaryOperation {
+                    let range = range_from_located::<L>(&lhs_extra, &rhs.extra);
+                    lhs = wrap(
+                        Expr::BinaryOperation(Box::new(BinaryOperation {
                             operation: op,
-                            left_hand_side: bin_op_lhs.right_hand_side,
+                            left_hand_side: XWrapper::new(
+                                Expr::BinaryOperation(Box::new(BinaryOperation {
+                                    operation: bin_op_lhs.operation,
+                                    left_hand_side: bin_op_lhs.left_hand_side,
+                                    right_hand_side: bin_op_lhs.right_hand_side,
+                                })),
+                                lhs_extra,
+                            ),
                             right_hand_side: rhs,
                         })),
-                    }));
+                        range,
+                    );
+                } else {
+                    let range = range_from_located::<L>(&lhs_extra, &rhs.extra);
+                    let range_inner =
+                        range_from_located::<L>(&bin_op_lhs.right_hand_side.extra, &rhs.extra);
+                    lhs = wrap(
+                        Expr::BinaryOperation(Box::new(BinaryOperation {
+                            operation: bin_op_lhs.operation,
+                            left_hand_side: bin_op_lhs.left_hand_side,
+                            right_hand_side: wrap(
+                                Expr::BinaryOperation(Box::new(BinaryOperation {
+                                    operation: op,
+                                    left_hand_side: bin_op_lhs.right_hand_side,
+                                    right_hand_side: rhs,
+                                })),
+                                range_inner,
+                            ),
+                        })),
+                        range,
+                    );
                 }
             }
             expr => {
-                lhs = Expression::BinaryOperation(Box::new(BinaryOperation {
-                    operation: op,
-                    left_hand_side: expr,
-                    right_hand_side: rhs,
-                }));
+                let range = range_from_located::<L>(&rhs.extra, &lhs_extra);
+                lhs = wrap(
+                    Expr::BinaryOperation(Box::new(BinaryOperation {
+                        operation: op,
+                        left_hand_side: XWrapper::new(expr, lhs_extra),
+                        right_hand_side: rhs,
+                    })),
+                    range,
+                );
             }
         }
     }
@@ -203,12 +235,14 @@ fn expression<L: Located>(pair: Pair<Rule>) -> Result<Expression<L>, Error> {
 
 fn term<L: Located>(pair: Pair<Rule>) -> Result<Expression<L>, Error> {
     expect_rule(&pair, Rule::term)?;
+    let range = range_from_pair(&pair);
     let mut iter = pair.into();
     let term = safe_next(&mut iter, Rule::term)?;
     match term.as_rule() {
-        Rule::literal_number => Ok(Expression::LiteralNumber(literal_number(term)?)),
-        Rule::function_call => Ok(Expression::Call(function_call(term)?)),
-        Rule::variable_name => Ok(Expression::Variable(variable_name(term)?)),
+        Rule::literal_number => Ok(wrap(Expr::LiteralNumber(literal_number(term)?), range)),
+        Rule::if_then_else => Ok(wrap(Expr::If(Box::new(if_then_else(term)?)), range)),
+        Rule::function_call => Ok(wrap(Expr::Call(function_call(term)?), range)),
+        Rule::variable_name => Ok(wrap(Expr::Variable(variable_name(term)?), range)),
         Rule::expression => Ok(expression(term)?),
         _ => unexpected_pair(term, Rule::term),
     }
@@ -216,32 +250,49 @@ fn term<L: Located>(pair: Pair<Rule>) -> Result<Expression<L>, Error> {
 
 fn operator<L: Located>(pair: Pair<Rule>) -> Result<Operator<L>, Error> {
     expect_rule(&pair, Rule::operator)?;
+    let range = range_from_pair(&pair);
     let operator = match pair.as_str() {
         "+" => Ok(Op::Add),
         "-" => Ok(Op::Subtract),
         "*" => Ok(Op::Multiply),
         "/" => Ok(Op::Divide),
+        ">" => Ok(Op::Greater),
+        "<" => Ok(Op::Less),
+        ">=" => Ok(Op::GreaterOrEqual),
+        "<=" => Ok(Op::LessOrEqual),
+        "==" => Ok(Op::Equal),
+        "!=" => Ok(Op::NotEqual),
         op => internal_parser_error(
             range_from_pair(&pair),
             format!("Unexpected operator `{}`, expected {}", op, Rule::operator).as_str(),
         ),
     }?;
-    Ok(Operator::new(
-        operator,
-        Located::new(range_from_pair(&pair)),
-    ))
+    Ok(wrap(operator, range))
 }
 
 fn literal_number<L: Located>(pair: Pair<Rule>) -> Result<LiteralNumber<L>, Error> {
     expect_rule(&pair, Rule::literal_number)?;
-    // println!("literal_number {:#?}", pair);
+    let range = range_from_pair(&pair);
     match f64::from_lexical(pair.as_str().as_bytes()) {
-        Ok(number) => Ok(LiteralNumber::new(
-            number,
-            Located::new(range_from_pair(&pair)),
-        )),
+        Ok(number) => Ok(wrap(number, range)),
         Err(_) => internal_parser_error(range_from_pair(&pair), "Invalid float literal"),
     }
+}
+
+fn if_then_else<L: Located>(pair: Pair<Rule>) -> Result<IfExpression<L>, Error> {
+    expect_rule(&pair, Rule::if_then_else)?;
+    let mut iter = pair.into();
+    safe_next(&mut iter, Rule::if_keyword)?;
+    let condition = expression(safe_next(&mut iter, Rule::expression)?)?;
+    safe_next(&mut iter, Rule::then_keyword)?;
+    let then = expression(safe_next(&mut iter, Rule::expression)?)?;
+    safe_next(&mut iter, Rule::else_keyword)?;
+    let r#else = expression(safe_next(&mut iter, Rule::expression)?)?;
+    Ok(IfExpression {
+        condition,
+        then,
+        r#else,
+    })
 }
 
 fn function_call<L: Located>(pair: Pair<Rule>) -> Result<Call<L>, Error> {
@@ -262,7 +313,6 @@ fn function_call_arguments<L: Located>(pair: Pair<Rule>) -> Result<Vec<Expressio
 }
 
 fn unexpected_pair<T>(unexpected_pair: Pair<Rule>, rule: Rule) -> Result<T, Error> {
-    println!("unexpected_pair {:#?}", unexpected_pair);
     internal_parser_error(
         range_from_pair(&unexpected_pair),
         format!(
@@ -291,6 +341,10 @@ fn range_from_pair(pair: &Pair<Rule>) -> Range<usize> {
     span.start()..span.end()
 }
 
+fn range_from_located<L: Located>(start: &L, end: &L) -> Range<usize> {
+    start.position().start..end.position().end
+}
+
 fn safe_next<'a>(iter: &mut Iter<'a>, expected_rule: Rule) -> Result<Pair<'a, Rule>, Error> {
     match iter.pairs.next() {
         Some(pair) => Ok(pair),
@@ -310,13 +364,17 @@ fn expect_rule(pair: &Pair<Rule>, expected_rule: Rule) -> Result<(), Error> {
         Ok(())
     } else {
         Err(Error::bug(
-            range_from_pair(&pair),
+            range_from_pair(pair),
             format!(
                 "Internal parser error: Expected token {} but was {}",
                 expected_rule, rule
             ),
         ))
     }
+}
+
+fn wrap<T, L: Located>(wrapped: T, range: Range<usize>) -> XWrapper<T, L> {
+    XWrapper::new(wrapped, Located::new(range))
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -347,21 +405,22 @@ impl Display for Rule {
             Rule::COMMENT => f.write_str("commnet"),
             Rule::comma => f.write_str("`,`"),
             Rule::literal_number => f.write_str("literal number"),
-            // Rule::sign => f.write_str("sign: `+`, `-`"),
-            // Rule::integral_plus => f.write_str("one or more digits"),
-            // Rule::fractional_plus => f.write_str("one or more digits"),
-            // Rule::fractional_times => f.write_str("zero or more digits"),
-            // Rule::exponent => f.write_str("one or more digits"),
             Rule::variable_name => f.write_str("variable name"),
             Rule::expression => f.write_str("expression"),
             Rule::term => f.write_str("term of an expression"),
-            Rule::operator => f.write_str("operator: `+`, `-`, `*` or `/`"),
+            Rule::operator => {
+                f.write_str("operator: (`+`, `-`, `*`, `/`, `>`, `<`, `>=`, `<=`, `==` or `!=`)")
+            }
+            Rule::if_then_else => f.write_str("if expression"),
             Rule::function_call => f.write_str("function call"),
             Rule::function_call_arguments => f.write_str("arguments for a function call"),
             Rule::function_name => f.write_str("function name"),
             Rule::keyword_after => f.write_str("whitespace or comment after a keyword"),
             Rule::def_keyword => f.write_str("`def` keyword"),
             Rule::extern_keyword => f.write_str("`extern` keyword"),
+            Rule::if_keyword => f.write_str("`if` keyword"),
+            Rule::then_keyword => f.write_str("then` keyword"),
+            Rule::else_keyword => f.write_str("else` keyword"),
             Rule::function_decleration => f.write_str("function decleration"),
             Rule::extern_function => f.write_str("extern function"),
             Rule::function_prototype => f.write_str("function prototype"),
@@ -371,7 +430,6 @@ impl Display for Rule {
             ),
             Rule::file => f.write_str("the whole file containing one or more toplevel expressions"),
             Rule::EOI => f.write_str("EOI: end of input"),
-            // rule => write!(f, "{:?}", rule),
         }
     }
 }

@@ -2,9 +2,9 @@ use std::io::ErrorKind;
 
 use bunt::termcolor::Buffer;
 use kaleidoscope_ast::Identifier;
-use kaleidoscope_codegen::CodeGenError;
+use kaleidoscope_codegen::{CodeGenError, LLVMStateError};
 use kaleidoscope_error as error;
-use kaleidoscope_parser::located::Located;
+use kaleidoscope_parser_pest::located::Located;
 
 macro_rules! error {
     ($target:expr, $format_str:literal $(, $arg:expr)*) => {
@@ -96,15 +96,26 @@ pub fn codegen_error_to_error<'ctx, L: Located>(error: &CodeGenError<'ctx, L>) -
             ident_error(ident, "Invalid generated LLVM function")
         }
         CodeGenError::InvalidMainFunction => {
-            error::Error::global_error("The method name `main` is reserved".into())
+            error::Error::global_error("The method name `main` is reserved")
         }
         CodeGenError::InvalidGeneratedModule(error_str) => error::Error::global_error(format!(
             "An error occured when genereating the code unit: {}",
-            error_str
+            error_str.to_string()
         )),
+        CodeGenError::InvalidLLVMState(expression, state_error) => match state_error {
+            LLVMStateError::NoInsertBlock => error::Error::bug(
+                expression.extra.position().clone(),
+                "The LLVM Builder has no insert block set",
+            ),
+            LLVMStateError::NoParentFunction => error::Error::bug(
+                expression.extra.position().clone(),
+                "The LLVM basic block has no parent function",
+            ),
+        },
     }
 }
 
+#[inline]
 fn ident_error(ident: &Identifier<impl Located>, message: impl Into<String>) -> error::Error {
-    error::Error::error(ident.extra.position().clone(), message.into())
+    error::Error::error(ident.extra.position().clone(), message)
 }

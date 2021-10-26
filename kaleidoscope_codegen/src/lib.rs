@@ -1,5 +1,7 @@
+use inkwell::basic_block::BasicBlock;
 use kaleidoscope_ast::*;
 
+use std::ops::Deref;
 use std::path::Path;
 use std::sync::Arc;
 use std::{borrow::Borrow, collections::HashMap};
@@ -11,9 +13,9 @@ use inkwell::{
     passes::PassManager,
     support::LLVMString,
     targets::{CodeModel, FileType, InitializationConfig, RelocMode, Target, TargetTriple},
-    types::BasicTypeEnum,
-    values::{BasicValue, BasicValueEnum, FloatValue, FunctionValue},
-    AddressSpace, OptimizationLevel,
+    types::BasicMetadataTypeEnum,
+    values::{BasicMetadataValueEnum, BasicValue, BasicValueEnum, FloatValue, FunctionValue},
+    AddressSpace, FloatPredicate, OptimizationLevel,
 };
 use thread_local::ThreadLocal;
 
@@ -23,6 +25,8 @@ struct CodeGen<'ctx, X> {
     builder: Builder<'ctx>,
     function_pass_manager: PassManager<FunctionValue<'ctx>>,
     variables: HashMap<String, FloatValue<'ctx>>,
+    main_bb: Option<BasicBlock<'ctx>>,
+    main_function: Option<FunctionValue<'ctx>>,
     errors: Vec<CodeGenError<'ctx, X>>,
     ast_list: &'ctx Vec<AST<X>>,
 }
@@ -32,7 +36,8 @@ impl<'ctx, X> CodeGen<'ctx, X> {
         for ast_value in self.ast_list {
             match ast_value {
                 AST::Expression(expr) => {
-                    self.add_result(self.toplevel_expression(&expr));
+                    let expression = self.toplevel_expression(&expr);
+                    self.add_result(expression);
                 }
                 AST::ExternFunction(prototype) => {
                     self.function_prototype(prototype);
@@ -44,9 +49,8 @@ impl<'ctx, X> CodeGen<'ctx, X> {
             }
         }
         // Add return statement
-        if let Some(main) = self.module.get_function("main") {
-            let entry = main.get_first_basic_block().unwrap();
-            self.builder.position_at_end(entry);
+        if let (Some(main), Some(main_bb)) = (self.main_function, self.main_bb) {
+            self.builder.position_at_end(main_bb);
             self.builder
                 .build_return(Some(&self.context.i32_type().const_int(0, true)));
             if !main.verify(true) {
@@ -72,7 +76,7 @@ impl<'ctx, X> CodeGen<'ctx, X> {
         }
     }
     fn toplevel_expression(
-        &self,
+        &mut self,
         expression: &'ctx Expression<X>,
     ) -> Result<(), CodeGenError<'ctx, X>> {
         let printf = match self.module.get_function("printf") {
@@ -90,39 +94,51 @@ impl<'ctx, X> CodeGen<'ctx, X> {
                 Some(Linkage::External),
             ),
         };
-        let main = match self.module.get_function("main") {
+        let main = match self.main_function {
             Some(function) => function,
-            None => self.module.add_function(
-                "main",
-                self.context.i32_type().fn_type(&vec![], false),
-                None,
-            ),
+            None => {
+                let main_function = self.module.add_function(
+                    "main",
+                    self.context.i32_type().fn_type(&vec![], false),
+                    None,
+                );
+                self.main_function = Some(main_function);
+                main_function
+            }
         };
-        let entry = match main.get_first_basic_block() {
+        let block = match self.main_bb {
             Some(block) => block,
-            None => self.context.append_basic_block(main, "entry"),
+            None => {
+                let main_bb = self.context.append_basic_block(main, "entry");
+                self.main_bb = Some(main_bb);
+                main_bb
+            }
         };
-        self.builder.position_at_end(entry);
+        self.builder.position_at_end(block);
         let printf_str = self
             .builder
             .build_global_string_ptr("%f\n", "printf_str")
-            .as_basic_value_enum();
+            .as_basic_value_enum()
+            .into();
         let expr = self.expression(expression)?;
-        self.builder
-            .build_call(printf, &vec![printf_str, expr.into()], "printtmp");
+        self.main_bb = Some(self.builder.get_insert_block().ok_or(
+            CodeGenError::InvalidLLVMState(expression, LLVMStateError::NoInsertBlock),
+        )?);
+        let args = vec![printf_str, expr.into()];
+        self.builder.build_call(printf, &args[..], "printtmp");
         Ok(())
     }
     fn expression(
         &self,
         expression: &'ctx Expression<X>,
     ) -> Result<FloatValue<'ctx>, CodeGenError<'ctx, X>> {
-        match expression {
-            Expression::LiteralNumber(val) => Ok(self.context.f64_type().const_float(val.wrapped)),
-            Expression::Variable(name) => match self.variables.get(&name.wrapped) {
+        match expression.deref() {
+            Expr::LiteralNumber(val) => Ok(self.context.f64_type().const_float(val.wrapped)),
+            Expr::Variable(name) => match self.variables.get(&name.wrapped) {
                 Some(variable) => Ok(*variable),
                 None => Err(CodeGenError::VariableNotFound(name.clone())),
             },
-            Expression::BinaryOperation(bin_op) => {
+            Expr::BinaryOperation(bin_op) => {
                 let lhs = self.expression(&bin_op.left_hand_side)?;
                 let rhs = self.expression(&bin_op.right_hand_side)?;
                 match bin_op.operation.wrapped {
@@ -130,9 +146,15 @@ impl<'ctx, X> CodeGen<'ctx, X> {
                     Op::Subtract => Ok(self.builder.build_float_sub(lhs, rhs, "subtmp")),
                     Op::Multiply => Ok(self.builder.build_float_mul(lhs, rhs, "multmp")),
                     Op::Divide => Ok(self.builder.build_float_div(lhs, rhs, "divtmp")),
+                    Op::Greater => Ok(self.build_compare(FloatPredicate::OGT, lhs, rhs)),
+                    Op::GreaterOrEqual => Ok(self.build_compare(FloatPredicate::OGE, lhs, rhs)),
+                    Op::Less => Ok(self.build_compare(FloatPredicate::OLT, lhs, rhs)),
+                    Op::LessOrEqual => Ok(self.build_compare(FloatPredicate::OLE, lhs, rhs)),
+                    Op::Equal => Ok(self.build_compare(FloatPredicate::OEQ, lhs, rhs)),
+                    Op::NotEqual => Ok(self.build_compare(FloatPredicate::ONE, lhs, rhs)),
                 }
             }
-            Expression::Call(Call { callee, args }) => {
+            Expr::Call(Call { callee, args }) => {
                 if let Some(callee_function) = self.module.get_function(&callee.wrapped) {
                     let cf_arg_len = callee_function.count_params();
                     if cf_arg_len != args.len() as u32 {
@@ -142,7 +164,7 @@ impl<'ctx, X> CodeGen<'ctx, X> {
                             actual: args.len(),
                         });
                     }
-                    let mut args_v: Vec<BasicValueEnum> = Vec::with_capacity(args.len());
+                    let mut args_v: Vec<BasicMetadataValueEnum> = Vec::with_capacity(args.len());
                     for arg in args {
                         args_v.push(self.expression(&arg)?.into());
                     }
@@ -159,12 +181,79 @@ impl<'ctx, X> CodeGen<'ctx, X> {
                     Err(CodeGenError::FunctionNotFound(callee.clone()))
                 }
             }
+            Expr::If(if_expression) => {
+                let IfExpression {
+                    condition,
+                    then,
+                    r#else,
+                } = if_expression.as_ref();
+                let condition = self.expression(condition)?;
+                let condition = self.builder.build_float_compare(
+                    FloatPredicate::ONE,
+                    condition,
+                    self.context.f64_type().const_float(0.0),
+                    "ifcond",
+                );
+                let function = self
+                    .builder
+                    .get_insert_block()
+                    .ok_or(CodeGenError::InvalidLLVMState(
+                        expression,
+                        LLVMStateError::NoInsertBlock,
+                    ))?
+                    .get_parent()
+                    .ok_or(CodeGenError::InvalidLLVMState(
+                        expression,
+                        LLVMStateError::NoParentFunction,
+                    ))?;
+                let then_bb = self.context.append_basic_block(function, "then");
+                let else_bb = self.context.append_basic_block(function, "else");
+                let merge_bb = self.context.append_basic_block(function, "merge");
+                self.builder
+                    .build_conditional_branch(condition, then_bb, else_bb);
+                self.builder.position_at_end(then_bb);
+                let then = self.expression(then)?;
+                self.builder.build_unconditional_branch(merge_bb);
+                let then_bb =
+                    self.builder
+                        .get_insert_block()
+                        .ok_or(CodeGenError::InvalidLLVMState(
+                            expression,
+                            LLVMStateError::NoInsertBlock,
+                        ))?;
+                self.builder.position_at_end(else_bb);
+                let else_expr = self.expression(r#else)?;
+                self.builder.build_unconditional_branch(merge_bb);
+                let else_bb =
+                    self.builder
+                        .get_insert_block()
+                        .ok_or(CodeGenError::InvalidLLVMState(
+                            expression,
+                            LLVMStateError::NoInsertBlock,
+                        ))?;
+                self.builder.position_at_end(merge_bb);
+                let phi = self.builder.build_phi(self.context.f64_type(), "iftmp");
+                let phi_incomming =
+                    vec![(&then as &dyn BasicValue, then_bb), (&else_expr, else_bb)];
+                phi.add_incoming(&phi_incomming[..]);
+                Ok(phi.as_basic_value().into_float_value())
+            }
         }
     }
+    fn build_compare(
+        &self,
+        op: FloatPredicate,
+        lhs: FloatValue<'ctx>,
+        rhs: FloatValue<'ctx>,
+    ) -> FloatValue<'ctx> {
+        let int_result = self.builder.build_float_compare(op, lhs, rhs, "cmptmp");
+        self.builder
+            .build_unsigned_int_to_float(int_result, self.context.f64_type(), "booltmp")
+    }
     fn function_prototype(&self, prototype: &'ctx FunctionPrototype<X>) -> FunctionValue<'ctx> {
-        let doubles: Vec<BasicTypeEnum> =
+        let doubles: Vec<BasicMetadataTypeEnum> =
             vec![self.context.f64_type().into(); prototype.args.len()];
-        let fn_type = self.context.f64_type().fn_type(&doubles, false);
+        let fn_type = self.context.f64_type().fn_type(&doubles[..], false);
         let function =
             self.module
                 .add_function(&prototype.name.wrapped, fn_type, Some(Linkage::External));
@@ -235,6 +324,8 @@ pub fn codegen<'ctx, X>(
         builder,
         function_pass_manager,
         variables: HashMap::new(),
+        main_bb: None,
+        main_function: None,
         errors: Vec::new(),
         ast_list,
     };
@@ -277,6 +368,13 @@ pub enum CodeGenError<'ctx, X> {
     InvalidGeneratedFunction(&'ctx Identifier<X>),
     InvalidMainFunction,
     InvalidGeneratedModule(LLVMString),
+    InvalidLLVMState(&'ctx Expression<X>, LLVMStateError),
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum LLVMStateError {
+    NoInsertBlock,
+    NoParentFunction,
 }
 
 pub struct GlobalContext {

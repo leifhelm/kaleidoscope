@@ -23,6 +23,8 @@ stdenv.mkDerivation {
     cargo
     rustc
     crate2nix
+    rr
+    gdb
     (llvmPackages_12.libllvm.override {
       enableSharedLibraries = false;
     }).dev

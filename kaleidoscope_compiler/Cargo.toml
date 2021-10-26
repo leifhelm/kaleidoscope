@@ -6,7 +6,6 @@ edition = "2018"
 
 [dependencies]
 kaleidoscope_ast = { path = "../kaleidoscope_ast" }
-kaleidoscope_parser = { path = "../kaleidoscope_parser" }
 kaleidoscope_parser_pest = { path = "../kaleidoscope_parser_pest" }
 kaleidoscope_codegen = { path = "../kaleidoscope_codegen" }
 kaleidoscope_error = { path = "../kaleidoscope_error", features = [ "bunt", "codespan-reporting" ] }

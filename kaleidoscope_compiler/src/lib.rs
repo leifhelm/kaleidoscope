@@ -26,11 +26,14 @@ pub fn run(matches: ArgMatches) {
                 }
             }
         }
-        Err(CLIArgsError::Color(wrong_input)) => eprintln!(
-            "\"{0}\" is not valid for the color option.\n\
+        Err(CLIArgsError::Color(wrong_input)) => {
+            eprintln!(
+                "\"{0}\" is not valid for the color option.\n\
              Please specify one of auto, always or never",
-            wrong_input
-        ),
+                wrong_input
+            );
+            std::process::exit(64);
+        }
     }
 }
 
