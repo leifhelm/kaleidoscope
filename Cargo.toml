@@ -2,6 +2,7 @@
 members = [
   "kaleidoscope_compiler",
   "kaleidoscope_ast",
+  "kaleidoscope_parser",
   "kaleidoscope_parser_pest",
   "kaleidoscope_codegen",
   "kaleidoscope_error",

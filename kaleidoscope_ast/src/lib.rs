@@ -79,6 +79,13 @@ impl<Wrapped, X> XWrapper<Wrapped, X> {
     pub fn new(wrapped: Wrapped, extra: X) -> Self {
         XWrapper { wrapped, extra }
     }
+
+    pub fn map<T>(self, f: impl FnOnce(Wrapped) -> T) -> XWrapper<T, X> {
+        XWrapper {
+            wrapped: f(self.wrapped),
+            extra: self.extra,
+        }
+    }
 }
 
 impl<Wrapped, X> Deref for XWrapper<Wrapped, X> {

@@ -7,7 +7,9 @@ use bunt::termcolor::Buffer;
 use kaleidoscope_ast::AST;
 use kaleidoscope_codegen as codegen;
 use kaleidoscope_error as error;
-use kaleidoscope_parser_pest as parser;
+// use kaleidoscope_parser_pest as parser;
+use kaleidoscope_parser as parser;
+use parser::located::LocatedSlice;
 use parser::located::Position;
 
 macro_rules! writeln {
@@ -59,12 +61,13 @@ impl Compiler {
     }
 
     fn parse(&mut self, input: &str) -> Result<(), ApplicationError> {
-        // let located_slice = LocatedSlice::new(input);
-        // let parser_result =
-        //     parser::parse::<LocatedSlice, parser::error::Error<LocatedSlice>, Position>(
-        //         located_slice,
-        //     ).map_err(|e| e.to_error());
-        let parser_result = kaleidoscope_parser_pest::parse::<Position>(input);
+        let located_slice = LocatedSlice::new(input);
+        let parser_result =
+            parser::parse::<LocatedSlice, parser::error::Error<LocatedSlice>, Position>(
+                located_slice,
+            )
+            .map_err(|e| e.into());
+        // let parser_result = kaleidoscope_parser_pest::parse::<Position>(input);
         match parser_result {
             Ok(ast_list) => {
                 writeln!(&mut self.stdout, "{:#?}", ast_list)?;

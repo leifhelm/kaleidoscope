@@ -48,6 +48,9 @@ impl<'ctx, X> CodeGen<'ctx, X> {
                 }
             }
         }
+        if !self.errors.is_empty() {
+            return Err(self.errors);
+        }
         // Add return statement
         if let (Some(main), Some(main_bb)) = (self.main_function, self.main_bb) {
             self.builder.position_at_end(main_bb);

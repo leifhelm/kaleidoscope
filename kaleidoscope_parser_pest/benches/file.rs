@@ -1,8 +1,7 @@
 use std::fs;
 
 use criterion::{criterion_group, criterion_main, Criterion};
-use kaleidoscope_parser::located::Position;
-use kaleidoscope_parser_pest::{parse, KaleidoscopeParser, Rule};
+use kaleidoscope_parser_pest::{located::Position, parse, KaleidoscopeParser, Rule};
 use pest::Parser;
 
 fn benchmark_kal(c: &mut Criterion) {

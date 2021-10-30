@@ -312,7 +312,7 @@ dependencies = [
 [[package]]
 name = "inkwell"
 version = "0.1.0"
-source = "git+https://github.com/TheDan64/inkwell?branch=master#bec0222fbd52c04fd575aebab3d9127a291a63b4"
+source = "git+https://github.com/TheDan64/inkwell?branch=master#a42e6aaade73ade97cf8026443cb18e38fd0c6b5"
 dependencies = [
  "either",
  "inkwell_internals",
@@ -325,8 +325,8 @@ dependencies = [
 
 [[package]]
 name = "inkwell_internals"
-version = "0.3.0"
-source = "git+https://github.com/TheDan64/inkwell?branch=master#bec0222fbd52c04fd575aebab3d9127a291a63b4"
+version = "0.4.0"
+source = "git+https://github.com/TheDan64/inkwell?branch=master#a42e6aaade73ade97cf8026443cb18e38fd0c6b5"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -376,6 +376,7 @@ dependencies = [
  "kaleidoscope_ast",
  "kaleidoscope_codegen",
  "kaleidoscope_error",
+ "kaleidoscope_parser",
  "kaleidoscope_parser_pest",
 ]
 
@@ -398,6 +399,18 @@ version = "0.1.0"
 dependencies = [
  "bunt",
  "codespan-reporting",
+]
+
+[[package]]
+name = "kaleidoscope_parser"
+version = "0.1.0"
+dependencies = [
+ "criterion",
+ "kaleidoscope_ast",
+ "kaleidoscope_error",
+ "nom",
+ "nom-unicode",
+ "termtree",
 ]
 
 [[package]]
@@ -514,6 +527,32 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "59accc507f1338036a0477ef61afdae33cde60840f4dfe481319ce3ad116ddf9"
 dependencies = [
  "autocfg",
+]
+
+[[package]]
+name = "minimal-lexical"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9c64630dcdd71f1a64c435f54885086a0de5d6a12d104d69b165fb7d5286d677"
+
+[[package]]
+name = "nom"
+version = "7.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7ffd9d26838a953b4af82cbeb9f1592c6798916983959be223a7124e992742c1"
+dependencies = [
+ "memchr",
+ "minimal-lexical",
+ "version_check",
+]
+
+[[package]]
+name = "nom-unicode"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a5c03a4d71ab9740c752c165329e9df13a808093b146dfbef6170ac260771ffe"
+dependencies = [
+ "nom",
 ]
 
 [[package]]
@@ -651,9 +690,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.30"
+version = "1.0.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "edc3358ebc67bc8b7fa0c007f945b0b18226f78437d61bec735a9eb96b61ee70"
+checksum = "ba508cc11742c0dc5c1659771673afbab7a0efab23aa17e854cbab0837ed0b43"
 dependencies = [
  "unicode-xid",
 ]
@@ -848,9 +887,9 @@ checksum = "8ea5119cdb4c55b55d432abb513a0429384878c15dde60cc77b1c99de1a95a6a"
 
 [[package]]
 name = "syn"
-version = "1.0.80"
+version = "1.0.81"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d010a1623fbd906d51d650a9916aaefc05ffa0e4053ff7fe601167f3e715d194"
+checksum = "f2afee18b8beb5a596ecb4a2dce128c719b4ba399d34126b9e4396e3f9860966"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -865,6 +904,12 @@ checksum = "2dfed899f0eb03f32ee8c6a0aabdb8a7949659e3466561fc0adf54e26d88c5f4"
 dependencies = [
  "winapi-util",
 ]
+
+[[package]]
+name = "termtree"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "13a4ec180a2de59b57434704ccfad967f789b12737738798fa08798cd5824c16"
 
 [[package]]
 name = "textwrap"
@@ -923,6 +968,12 @@ name = "vec_map"
 version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f1bddf1187be692e79c5ffeab891132dfb0f236ed36a43c7ed39f1165ee20191"
+
+[[package]]
+name = "version_check"
+version = "0.9.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5fecdca9a5291cc2b8dcf7dc02453fee791a280f3743cb0905f8822ae463b3fe"
 
 [[package]]
 name = "walkdir"

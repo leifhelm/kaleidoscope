@@ -4,7 +4,7 @@ use bunt::termcolor::Buffer;
 use kaleidoscope_ast::Identifier;
 use kaleidoscope_codegen::{CodeGenError, LLVMStateError};
 use kaleidoscope_error as error;
-use kaleidoscope_parser_pest::located::Located;
+use kaleidoscope_parser::located::Located;
 
 macro_rules! error {
     ($target:expr, $format_str:literal $(, $arg:expr)*) => {
