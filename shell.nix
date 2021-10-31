@@ -23,10 +23,11 @@ stdenv.mkDerivation {
     cargo
     rustc
     crate2nix
-    rr
     gdb
     llvmPackages_13.libllvm.dev
     libffi.dev
     libxml2.dev
+  ] ++ lib.optionals (stdenv.isx86_64 && stdenv.isLinux) [
+    rr
   ];
 }
