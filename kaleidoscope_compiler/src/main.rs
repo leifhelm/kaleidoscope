@@ -1,8 +1,7 @@
+use kaleidoscope::run;
+
 #[macro_use]
 extern crate clap;
-
-// #[global_allocator]
-// static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 fn main() {
     let matches = clap_app!(kaleidoscope =>
@@ -13,5 +12,5 @@ fn main() {
         (@arg color: --color +takes_value "Coloring: auto, always, never")
     )
     .get_matches();
-    kaleidoscope::run(matches);
+    run(matches);
 }

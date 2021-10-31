@@ -52,8 +52,8 @@ impl<I> Error<I> {
     }
 }
 
-impl<I: Clone> ParseError<I> for Error<I> {
-    fn from_error_kind(input: I, kind: nom::error::ErrorKind) -> Self {
+impl<L: Clone + LocatedInput> ParseError<L> for Error<L> {
+    fn from_error_kind(input: L, kind: nom::error::ErrorKind) -> Self {
         Error::new(
             input.clone(),
             ErrorTree::Leaf(ErrorData {
@@ -64,7 +64,7 @@ impl<I: Clone> ParseError<I> for Error<I> {
         )
     }
 
-    fn append(_input: I, kind: nom::error::ErrorKind, other: Self) -> Self {
+    fn append(_input: L, kind: nom::error::ErrorKind, other: Self) -> Self {
         if kind == nom::error::ErrorKind::Fail {
             Error::new(other.slice, ErrorTree::Or(vec![other.tree], None))
         } else {
@@ -72,7 +72,7 @@ impl<I: Clone> ParseError<I> for Error<I> {
         }
     }
 
-    fn from_char(input: I, c: char) -> Self {
+    fn from_char(input: L, c: char) -> Self {
         Error::new(
             input.clone(),
             ErrorTree::Leaf(ErrorData {
@@ -85,6 +85,12 @@ impl<I: Clone> ParseError<I> for Error<I> {
 
     fn or(mut self, other: Self) -> Self {
         match self.tree {
+            /*
+            Keep only the last error. All previous error are discarded
+            by the following guards.
+            */
+            _ if self.slice.position() > other.slice.position() => self,
+            _ if other.slice.position() > self.slice.position() => other,
             ErrorTree::Or(mut list, ctx) => {
                 match other.tree {
                     ErrorTree::Or(mut sub_tree, _) => list.append(&mut sub_tree),
@@ -109,12 +115,10 @@ impl<I> ExtendedContextError<I> for Error<I> {
                 other.tree = ErrorTree::Or(list, Some(ctx));
                 other
             }
-            ErrorTree::Leaf(mut leaf) => {
-                if leaf.context.is_none() {
-                    leaf.context = Some(ctx);
-                }
-                Error::new(other.slice, ErrorTree::Leaf(leaf))
-            }
+            ErrorTree::Leaf(leaf) => Error::new(
+                other.slice,
+                ErrorTree::Or(vec![ErrorTree::Leaf(leaf)], Some(ctx)),
+            ),
             _ => other,
         }
     }
