@@ -25,9 +25,7 @@ stdenv.mkDerivation {
     crate2nix
     rr
     gdb
-    (llvmPackages_12.libllvm.override {
-      enableSharedLibraries = false;
-    }).dev
+    llvmPackages_13.libllvm.dev
     libffi.dev
     libxml2.dev
   ];

@@ -5,13 +5,10 @@
     flake-utils.lib.eachDefaultSystem
       (system:
         let pkgs = nixpkgs.legacyPackages.${system};
-            llvm = (pkgs.llvmPackages_12.libllvm.override {
-              enableSharedLibraries = false;
-            }).dev;
             customBuildRustCrateForPkgs = pkgs: pkgs.buildRustCrate.override {
               defaultCrateOverrides = pkgs.defaultCrateOverrides // {
                 llvm-sys = attrs: {
-                  buildInputs = [ llvm ];
+                  buildInputs = [ pkgs.llvmPackages_13.libllvm.dev ];
                 };
                 kaleidoscope = attrs: {
                   nativeBuildInputs = [ pkgs.pkg-config ];

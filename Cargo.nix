@@ -79,6 +79,16 @@ rec {
       # File a bug if you depend on any for non-debug work!
       debug = internal.debugCrate { inherit packageId; };
     };
+    "kaleidoscope_parser" = rec {
+      packageId = "kaleidoscope_parser";
+      build = internal.buildRustCrateWithFeatures {
+        packageId = "kaleidoscope_parser";
+      };
+
+      # Debug support which might change between releases.
+      # File a bug if you depend on any for non-debug work!
+      debug = internal.debugCrate { inherit packageId; };
+    };
     "kaleidoscope_parser_pest" = rec {
       packageId = "kaleidoscope_parser_pest";
       build = internal.buildRustCrateWithFeatures {
@@ -902,8 +912,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/TheDan64/inkwell";
-          rev = "bec0222fbd52c04fd575aebab3d9127a291a63b4";
-          sha256 = "03f0qii3g1cl6bsnpmgc944p66naxyxklgkzms8xgm2f990js59p";
+          rev = "45d4dcbeabb8b3c074ef40aeb0e816704c293f31";
+          sha256 = "1h4vi7hs33m298mhilz95qib2w433777140srdjvh7969w2wdqqj";
         };
         authors = [
           "Daniel Kolsoi <thadan64@gmail.com>"
@@ -924,7 +934,7 @@ rec {
           {
             name = "llvm-sys";
             packageId = "llvm-sys";
-            rename = "llvm-sys-120";
+            rename = "llvm-sys-130";
             optional = true;
           }
           {
@@ -949,6 +959,8 @@ rec {
           "llvm11-0-no-llvm-linking" = [ "llvm11-0" "llvm-sys-110/no-llvm-linking" ];
           "llvm12-0" = [ "llvm-sys-120" ];
           "llvm12-0-no-llvm-linking" = [ "llvm12-0" "llvm-sys-120/no-llvm-linking" ];
+          "llvm13-0" = [ "llvm-sys-130" ];
+          "llvm13-0-no-llvm-linking" = [ "llvm13-0" "llvm-sys-130/no-llvm-linking" ];
           "llvm3-6" = [ "llvm-sys-36" ];
           "llvm3-6-no-llvm-linking" = [ "llvm3-6" "llvm-sys-36/no-llvm-linking" ];
           "llvm3-7" = [ "llvm-sys-37" ];
@@ -972,17 +984,17 @@ rec {
           "nightly" = [ "inkwell_internals/nightly" ];
           "target-all" = [ "target-x86" "target-arm" "target-mips" "target-aarch64" "target-amdgpu" "target-systemz" "target-hexagon" "target-nvptx" "target-msp430" "target-xcore" "target-powerpc" "target-sparc" "target-bpf" "target-lanai" "target-webassembly" "target-riscv" ];
         };
-        resolvedDefaultFeatures = [ "default" "llvm-sys-120" "llvm12-0" "target-aarch64" "target-all" "target-amdgpu" "target-arm" "target-bpf" "target-hexagon" "target-lanai" "target-mips" "target-msp430" "target-nvptx" "target-powerpc" "target-riscv" "target-sparc" "target-systemz" "target-webassembly" "target-x86" "target-xcore" ];
+        resolvedDefaultFeatures = [ "default" "llvm-sys-130" "llvm13-0" "target-aarch64" "target-all" "target-amdgpu" "target-arm" "target-bpf" "target-hexagon" "target-lanai" "target-mips" "target-msp430" "target-nvptx" "target-powerpc" "target-riscv" "target-sparc" "target-systemz" "target-webassembly" "target-x86" "target-xcore" ];
       };
       "inkwell_internals" = rec {
         crateName = "inkwell_internals";
-        version = "0.3.0";
+        version = "0.4.0";
         edition = "2018";
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/TheDan64/inkwell";
-          rev = "bec0222fbd52c04fd575aebab3d9127a291a63b4";
-          sha256 = "03f0qii3g1cl6bsnpmgc944p66naxyxklgkzms8xgm2f990js59p";
+          rev = "45d4dcbeabb8b3c074ef40aeb0e816704c293f31";
+          sha256 = "1h4vi7hs33m298mhilz95qib2w433777140srdjvh7969w2wdqqj";
         };
         procMacro = true;
         authors = [
@@ -1112,6 +1124,10 @@ rec {
             features = [ "bunt" "codespan-reporting" ];
           }
           {
+            name = "kaleidoscope_parser";
+            packageId = "kaleidoscope_parser";
+          }
+          {
             name = "kaleidoscope_parser_pest";
             packageId = "kaleidoscope_parser_pest";
           }
@@ -1140,7 +1156,7 @@ rec {
           {
             name = "inkwell";
             packageId = "inkwell";
-            features = [ "llvm12-0" ];
+            features = [ "llvm13-0" ];
           }
           {
             name = "kaleidoscope_ast";
@@ -1175,6 +1191,44 @@ rec {
         ];
 
         resolvedDefaultFeatures = [ "bunt" "codespan-reporting" ];
+      };
+      "kaleidoscope_parser" = rec {
+        crateName = "kaleidoscope_parser";
+        version = "0.1.0";
+        edition = "2018";
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./kaleidoscope_parser; };
+        authors = [
+          "Jakob Leifhelm <jakob.leifhelm@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "kaleidoscope_ast";
+            packageId = "kaleidoscope_ast";
+          }
+          {
+            name = "kaleidoscope_error";
+            packageId = "kaleidoscope_error";
+          }
+          {
+            name = "nom";
+            packageId = "nom";
+          }
+          {
+            name = "nom-unicode";
+            packageId = "nom-unicode";
+          }
+          {
+            name = "termtree";
+            packageId = "termtree";
+          }
+        ];
+        devDependencies = [
+          {
+            name = "criterion";
+            packageId = "criterion";
+          }
+        ];
+
       };
       "kaleidoscope_parser_pest" = rec {
         crateName = "kaleidoscope_parser_pest";
@@ -1329,9 +1383,9 @@ rec {
       };
       "libc" = rec {
         crateName = "libc";
-        version = "0.2.105";
+        version = "0.2.106";
         edition = "2015";
-        sha256 = "04rhxxjvpd106b2yw2pxa4lcnm6wbk5nnx03b61ma3b26qhmg7c6";
+        sha256 = "0wynaqs2ix4fqk603qhi7axw1fg9p5rhbcp9nhrs6fg0m7wm61d6";
         authors = [
           "The Rust Project Developers"
         ];
@@ -1364,9 +1418,9 @@ rec {
       };
       "llvm-sys" = rec {
         crateName = "llvm-sys";
-        version = "120.2.1";
+        version = "130.0.0";
         edition = "2015";
-        sha256 = "1kk3ayksfgihq70x5i7xdr6qsx6qpflln8fjbxpkjay6g9i11a5l";
+        sha256 = "07yng4fh5rmfhypprhrrgfp1plldd8pb89ysq3va4mq2mjgfc3ca";
         authors = [
           "Peter Marheine <peter@taricorp.net>"
         ];
@@ -1460,7 +1514,7 @@ rec {
           "rustc-dep-of-std" = [ "core" "compiler_builtins" ];
           "use_std" = [ "std" ];
         };
-        resolvedDefaultFeatures = [ "default" "std" ];
+        resolvedDefaultFeatures = [ "default" "std" "use_std" ];
       };
       "memoffset" = rec {
         crateName = "memoffset";
@@ -1479,6 +1533,72 @@ rec {
         features = {
         };
         resolvedDefaultFeatures = [ "default" ];
+      };
+      "minimal-lexical" = rec {
+        crateName = "minimal-lexical";
+        version = "0.1.4";
+        edition = "2018";
+        sha256 = "0xynhr97vyv5n5lls41dl7bfa3ba122lix9mqij1l7yprl6n6r4w";
+        authors = [
+          "Alex Huszagh <ahuszagh@gmail.com>"
+        ];
+        features = {
+          "default" = [ "std" ];
+        };
+        resolvedDefaultFeatures = [ "default" "std" ];
+      };
+      "nom" = rec {
+        crateName = "nom";
+        version = "7.0.0";
+        edition = "2018";
+        sha256 = "1ha24yclw4m74gi9p5c3d68rhrrcb7qvkgicz153p5cahck9vzbz";
+        authors = [
+          "contact@geoffroycouprie.com"
+        ];
+        dependencies = [
+          {
+            name = "memchr";
+            packageId = "memchr";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "minimal-lexical";
+            packageId = "minimal-lexical";
+          }
+        ];
+        buildDependencies = [
+          {
+            name = "version_check";
+            packageId = "version_check";
+          }
+        ];
+        features = {
+          "default" = [ "std" ];
+          "std" = [ "alloc" "memchr/use_std" ];
+        };
+        resolvedDefaultFeatures = [ "alloc" "default" "std" ];
+      };
+      "nom-unicode" = rec {
+        crateName = "nom-unicode";
+        version = "0.3.0";
+        edition = "2018";
+        sha256 = "1zhzfxhc42hpyszdyimijf080fpikng34rf1ab3l15xbf56kmh55";
+        authors = [
+          "Alex Huszagh <ahuszagh@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "nom";
+            packageId = "nom";
+            usesDefaultFeatures = false;
+          }
+        ];
+        features = {
+          "alloc" = [ "nom/alloc" ];
+          "default" = [ "std" ];
+          "std" = [ "nom/std" ];
+        };
+        resolvedDefaultFeatures = [ "default" "std" ];
       };
       "num-traits" = rec {
         crateName = "num-traits";
@@ -1805,12 +1925,12 @@ rec {
       };
       "proc-macro2" = rec {
         crateName = "proc-macro2";
-        version = "1.0.30";
+        version = "1.0.32";
         edition = "2018";
-        sha256 = "0w7fc5mvk7jsfgn1pmiphkvjd0min12zj1y0l1zqpg37pj73bhzd";
+        sha256 = "0hqbxlvhiaybakl1gai3mgps1dxsmxricxsr2rfdrh222z0qql5s";
         authors = [
-          "Alex Crichton <alex@alexcrichton.com>"
           "David Tolnay <dtolnay@gmail.com>"
+          "Alex Crichton <alex@alexcrichton.com>"
         ];
         dependencies = [
           {
@@ -2282,9 +2402,9 @@ rec {
       };
       "syn" = rec {
         crateName = "syn";
-        version = "1.0.80";
+        version = "1.0.81";
         edition = "2018";
-        sha256 = "156i2pkz6rqic3zgfgq5wjhgy1gwmrm93aahsr8nv45x7xia246h";
+        sha256 = "0rh9hvwy75j3krmi4d4x76xb86f753hxr8mlxjbabddyp0cfxbzj";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -2328,6 +2448,13 @@ rec {
             target = { target, features }: (target."windows" or false);
           }
         ];
+
+      };
+      "termtree" = rec {
+        crateName = "termtree";
+        version = "0.2.3";
+        edition = "2018";
+        sha256 = "05jchbaqqy88zac8fwrp4yqqkxv7v7xcq1278dbrpr9d18cfr90k";
 
       };
       "textwrap" = rec {
@@ -2472,6 +2599,16 @@ rec {
         features = {
           "eders" = [ "serde" ];
         };
+      };
+      "version_check" = rec {
+        crateName = "version_check";
+        version = "0.9.3";
+        edition = "2015";
+        sha256 = "1zmkcgj2m0pq0l4wnhrp1wl1lygf7x2h5p7pvjwc4719lnlxrv2z";
+        authors = [
+          "Sergio Benitez <sb@sergio.bz>"
+        ];
+
       };
       "walkdir" = rec {
         crateName = "walkdir";
