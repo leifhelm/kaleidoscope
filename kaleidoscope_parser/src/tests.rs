@@ -3,7 +3,7 @@ use nom::{combinator::all_consuming, InputLength, Parser, Slice};
 use crate::{
     args,
     error::Error,
-    expression, extern_function, function_definition, identifier, literal_number,
+    expression, extern_function, function_definition, identifier, if_then_else, literal_number,
     located::{Located, LocatedSlice, Position},
     parse_statements, variable_call,
 };
@@ -120,6 +120,46 @@ fn test_function_call() {
 }
 
 #[test]
+fn test_if_then_else() {
+    let if_then_else = if_then_else::<_, _, Position>;
+    good(if_then_else, "if 1 then 1 else 0");
+    good(if_then_else, "if var then 2 else var");
+    good(
+        if_then_else,
+        "if\nnewline\nthen\nif//comment\ncomment then 3 else 9\nelse a(9)",
+    );
+    good(if_then_else, "if if double_if then 0 else 1 then a else b");
+    good(
+        if_then_else,
+        "if if_else then\n  8.3\nelse if pi then\n  3.14\nelse\n  0",
+    );
+    good(if_then_else, "if (parenthesis)then (64)else (brackets)");
+    good(
+        if_then_else,
+        "if (if parens_nested then p else n) then 8 else 43",
+    );
+    good(if_then_else, "if f(x) then f(y) else f(z)");
+    good(if_then_else, "if double_then then then else 7");
+    good(if_then_else, "if double_else then 78 else else");
+    good(if_then_else, "if then_else then else else 09");
+    good(if_then_else, "if else_then then 65 else then");
+    good(if_then_else, "if then then else else else");
+    good(if_then_else, "if then then then else else");
+    good(if_then_else, "if else then else else then");
+    good(
+        if_then_else,
+        "if if then then then else else then else else else",
+    );
+
+    bad(if_then_else, "if too_short then then else");
+    bad(if_then_else, "if too_long then then else else else");
+    bad(if_then_else, "if wrong_way_round else 83 then 55");
+    bad(if_then_else, "if(parenthesis)then 437 else abc");
+    bad(if_then_else, "if if wrong_nest then 4 then 41 else 8");
+    bad(if_then_else, "if then_nest then if c then b else a");
+}
+
+#[test]
 fn test_expression() {
     let expression = expression::<_, _, Position>;
     good(expression, "4");
@@ -166,6 +206,7 @@ base*exponent",
     good(function_definition, "def camelCase(_x) 6.5");
     good(function_definition, "def\nnewline()\n1");
     good(function_definition, "def\ttab()\t7+pow(3,\t6.4)");
+    good(function_definition, "def def() 5");
 
     bad(function_definition, "deffunc() x");
     bad(function_definition, "def func () x");
@@ -183,6 +224,7 @@ sqrt(x//the number the square root gets calculated for
 )",
     );
     good(extern_function, "extern pow(base, exponent,)");
+    good(extern_function, "extern extern(pi)");
 
     bad(extern_function, "extern");
     bad(extern_function, "external print(number)");
