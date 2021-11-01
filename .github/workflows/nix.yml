@@ -42,4 +42,4 @@ jobs:
     - name: Setup glibc
       run: export LD_LIBRARY_PATH=$(nix eval --raw nixpkgs#glibc)/lib
     - name: Test
-      run: nix develop .#cargo -c cargo test --all
+      run: nix develop .#cargo -c cargo test --verbose
