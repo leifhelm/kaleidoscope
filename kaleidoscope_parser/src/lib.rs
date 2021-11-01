@@ -8,11 +8,11 @@ use nom::{
     branch::alt,
     bytes::complete::tag,
     character::complete::{char, multispace0, multispace1, not_line_ending},
-    combinator::{cut, map, opt, recognize, success, value},
+    combinator::{all_consuming, cut, map, opt, recognize, success, value},
     error::ContextError,
-    multi::{many0, separated_list0},
+    multi::{many0, separated_list1},
     number::complete::double,
-    sequence::{delimited, pair, preceded},
+    sequence::{delimited, pair, preceded, terminated},
     AsBytes, AsChar, Compare, IResult, InputIter, InputLength, InputTake, InputTakeAtPosition,
     Offset, Parser, Slice,
 };
@@ -140,7 +140,13 @@ where
 {
     delimited(
         char('('),
-        cut(separated_list0(ws(char(',')), ws(inner))),
+        cut(map(
+            opt(terminated(
+                separated_list1(ws(char(',')), ws(inner)),
+                opt(ws(char(','))),
+            )),
+            |args| args.unwrap_or_default(),
+        )),
         cut(ws(char(')'))),
     )
 }
@@ -324,12 +330,13 @@ where
 fn keyword<I, E>(keyword: &'static str) -> impl FnMut(I) -> IResult<I, (), E>
 where
     I: Input,
+    <I as InputIter>::Item: AsChar,
     <I as InputTakeAtPosition>::Item: AsChar + Clone,
     E: ParseError<I>,
 {
     extended_context(ExtendedContext::Keyword(keyword), move |i: I| {
         let (i, _) = tag(keyword)(i)?;
-        let (i, _) = multispace1(i)?;
+        let (i, _) = alt((multispace1, comment))(i)?;
         Ok((i, ()))
     })
 }
@@ -337,7 +344,7 @@ fn function_prototype<I, E, L>(i: I) -> IResult<I, FunProto<L>, E>
 where
     I: Input,
     <I as InputIter>::Item: AsChar,
-    <I as InputTakeAtPosition>::Item: AsChar + IsChar + Clone,
+    <I as InputTakeAtPosition>::Item: IsChar + Clone,
     E: ParseError<I>,
     L: Located,
 {
@@ -346,7 +353,7 @@ where
     })(i)
 }
 
-fn function_definition<I, E, L>(i: I) -> IResult<I, Fun<L>, E>
+fn function_definition<I, E, L>(i: I) -> IResult<I, Function<L>, E>
 where
     I: Input,
     <I as InputIter>::Item: AsChar + Copy,
@@ -355,13 +362,27 @@ where
     E: ParseError<I>,
     L: Located,
 {
-    map(
-        pair(locate(function_prototype), ws(expression)),
-        |(prototype, body)| Fun {
-            prototype,
-            body: Box::new(body),
-        },
-    )(i)
+    locate(preceded(
+        keyword("def"),
+        cut(ws(map(
+            pair(locate(function_prototype), ws(expression)),
+            |(prototype, body)| Fun {
+                prototype,
+                body: Box::new(body),
+            },
+        ))),
+    ))(i)
+}
+
+fn extern_function<I, E, L>(i: I) -> IResult<I, FunctionPrototype<L>, E>
+where
+    I: Input,
+    <I as InputIter>::Item: AsChar,
+    <I as InputTakeAtPosition>::Item: IsChar + Clone,
+    E: ParseError<I> + ContextError<I>,
+    L: Located,
+{
+    locate(preceded(keyword("extern"), cut(ws(function_prototype))))(i)
 }
 
 pub fn statement<I, E, L>(i: I) -> IResult<I, AST<L>, E>
@@ -376,59 +397,23 @@ where
     extended_context(
         ExtendedContext::Statement,
         alt((
-            map(
-                locate(preceded(keyword("def"), cut(function_definition))),
-                |fn_def| AST::Function(fn_def),
-            ),
-            map(
-                locate(preceded(keyword("extern"), cut(function_prototype))),
-                |protoype| AST::ExternFunction(protoype),
-            ),
+            map(function_definition, |fn_def| AST::Function(fn_def)),
+            map(extern_function, |protoype| AST::ExternFunction(protoype)),
             map(expression, |expr| AST::Expression(expr)),
         )),
     )(i)
 }
 
-fn many0_until_eof<I, O, E, F>(mut f: F) -> impl FnMut(I) -> IResult<I, Vec<O>, E>
+fn parse_statements<I, E, L>(i: I) -> IResult<I, Vec<AST<L>>, E>
 where
     I: Input,
-    <I as InputIter>::Item: AsChar,
-    <I as InputTakeAtPosition>::Item: AsChar + Clone,
-    E: ParseError<I>,
-    F: Parser<I, O, E>,
+    <I as InputIter>::Item: AsChar + Copy,
+    <I as InputIter>::IterElem: Clone,
+    <I as InputTakeAtPosition>::Item: AsChar + IsChar + Clone,
+    E: ParseError<I> + ContextError<I>,
+    L: Located,
 {
-    move |mut i: I| {
-        let mut acc = Vec::with_capacity(4);
-        loop {
-            let len = i.input_len();
-            match f.parse(i.clone()) {
-                Err(e @ nom::Err::Error(_)) => {
-                    let i = match ws::<_, _, E, _>(success(()))(i.clone()) {
-                        Ok((i, _)) => i,
-                        Err(_) => i,
-                    };
-                    return if i.input_len() == 0 {
-                        Ok((i, acc))
-                    } else {
-                        Err(e)
-                    };
-                }
-                Err(e) => return Err(e),
-                Ok((i1, o)) => {
-                    // infinite loop check: the parser must always consume
-                    if i1.input_len() == len {
-                        return Err(nom::Err::Error(E::from_error_kind(
-                            i,
-                            nom::error::ErrorKind::Many0,
-                        )));
-                    }
-
-                    i = i1;
-                    acc.push(o);
-                }
-            }
-        }
-    }
+    all_consuming(terminated(many0(ws(statement)), ws(success(()))))(i)
 }
 
 pub fn parse<I, E, L>(i: I) -> Result<Vec<AST<L>>, E>
@@ -440,7 +425,7 @@ where
     E: ParseError<I> + ContextError<I>,
     L: Located,
 {
-    match many0_until_eof(ws(statement))(i) {
+    match parse_statements(i) {
         Err(err) => Err(match err {
             nom::Err::Error(err) | nom::Err::Failure(err) => err,
             _ => unreachable!(),

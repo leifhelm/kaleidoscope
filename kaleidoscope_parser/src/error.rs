@@ -12,7 +12,6 @@ use crate::located::LocatedInput;
 
 #[derive(Debug, PartialEq)]
 pub enum ErrorKind {
-    Context(ExtendedContext),
     Char(char),
     Nom(nom::error::ErrorKind),
 }
@@ -20,7 +19,6 @@ pub enum ErrorKind {
 impl Display for ErrorKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ErrorKind::Context(ctx) => ctx.fmt(f),
             ErrorKind::Char(c) => write!(f, "`{}`", c),
             ErrorKind::Nom(err) => write!(f, "{}", err.description()),
         }
@@ -115,10 +113,12 @@ impl<I> ExtendedContextError<I> for Error<I> {
                 other.tree = ErrorTree::Or(list, Some(ctx));
                 other
             }
-            ErrorTree::Leaf(leaf) => Error::new(
-                other.slice,
-                ErrorTree::Or(vec![ErrorTree::Leaf(leaf)], Some(ctx)),
-            ),
+            ErrorTree::Leaf(mut leaf) => {
+                if leaf.context.is_none() {
+                    leaf.context = Some(ctx);
+                }
+                Error::new(other.slice, ErrorTree::Leaf(leaf))
+            }
             _ => other,
         }
     }
@@ -148,8 +148,7 @@ where
 
 impl<I> Display for ErrorTree<I> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let trees = self.to_trees();
-        for tree in trees {
+        for tree in self.to_trees() {
             writeln!(f, "{}", tree)?;
         }
         Ok(())
@@ -157,21 +156,35 @@ impl<I> Display for ErrorTree<I> {
 }
 
 impl<I> ErrorTree<I> {
-    fn to_trees(&self) -> Vec<Tree<String>> {
+    fn to_trees(&self) -> Box<dyn Iterator<Item = Tree<String>> + '_> {
         match self {
-            ErrorTree::Or(sub_trees, Some(context)) => vec![Tree::new(
-                context.to_string(),
-                FromIterator::from_iter(sub_trees.iter().flat_map(Self::to_trees)),
-            )],
+            ErrorTree::Or(sub_trees, Some(context)) => {
+                Box::new(IntoIterator::into_iter([Tree::new(
+                    context.to_string(),
+                    FromIterator::from_iter(sub_trees.into_iter().flat_map(Self::to_trees)),
+                )]))
+            }
             ErrorTree::Or(sub_trees, None) => {
-                FromIterator::from_iter(sub_trees.iter().flat_map(Self::to_trees))
+                Box::new(sub_trees.into_iter().flat_map(Self::to_trees))
             }
             ErrorTree::Leaf(ErrorData {
-                context: Some(context),
-                ..
-            }) => vec![Tree::new(context.to_string(), vec![])],
-            ErrorTree::Leaf(ErrorData { errorkind, .. }) => {
-                vec![Tree::new(errorkind.to_string(), vec![])]
+                context, errorkind, ..
+            }) => {
+                use nom::error::ErrorKind::*;
+                let sub_tree = match errorkind {
+                    ErrorKind::Char(_)
+                    | ErrorKind::Nom(Char | Alpha | AlphaNumeric | Space | MultiSpace) => {
+                        vec![Tree::new(errorkind.to_string(), vec![])]
+                    }
+                    _ => vec![],
+                };
+                match context {
+                    Some(context) => Box::new(IntoIterator::into_iter([Tree::new(
+                        context.to_string(),
+                        sub_tree,
+                    )])),
+                    None => Box::new(sub_tree.into_iter()),
+                }
             }
         }
     }
