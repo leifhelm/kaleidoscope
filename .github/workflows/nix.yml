@@ -24,5 +24,7 @@ jobs:
           access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
     - name: Build
       run: nix build
+    - name: Test
+      run: nix develop .#cargo -c cargo test --all
     - name: Flake check
       run: nix flake check

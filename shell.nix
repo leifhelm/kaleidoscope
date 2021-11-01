@@ -6,6 +6,7 @@
 #     }/overlay.nix")
 #   ];
 }
+, devTools ? true
 }:
 with pkgs;
 stdenv.mkDerivation {
@@ -21,13 +22,14 @@ stdenv.mkDerivation {
     # ])
     # rust-analyzer-nightly
     cargo
-    rustc
-    crate2nix
-    gdb
     llvmPackages_13.libllvm.dev
     libffi.dev
     libxml2.dev
-  ] ++ lib.optionals (stdenv.isx86_64 && stdenv.isLinux) [
+  ] ++ lib.optionals devTools ([
+    rustc
+    crate2nix
+    gdb
+  ]  ++ lib.optionals (stdenv.isx86_64 && stdenv.isLinux) [
     rr
-  ];
+  ]);
 }

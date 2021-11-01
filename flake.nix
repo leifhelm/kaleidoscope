@@ -27,6 +27,7 @@
         in
           rec {
             devShell = import ./shell.nix { inherit pkgs; };
+            devShells."cargo" = import ./shell.nix { inherit pkgs; devTools = false; };
             defaultPackage = packages.kaleidoscope;
             packages.kaleidoscope = cargo_nix.workspaceMembers."kaleidoscope".build;
           }
