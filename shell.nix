@@ -25,7 +25,6 @@ stdenv.mkDerivation {
     llvmPackages_13.libllvm.dev
     libffi.dev
     libxml2.dev
-    glibc.dev
   ] ++ lib.optionals devTools ([
     rustc
     crate2nix
