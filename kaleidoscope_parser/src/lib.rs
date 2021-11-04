@@ -86,13 +86,17 @@ where
     preceded(pair(multispace0, many0(pair(comment, multispace0))), inner)
 }
 
+/// comments start with `//` or with `#`
 fn comment<I, E>(i: I) -> IResult<I, I, E>
 where
     I: Input,
     <I as InputIter>::Item: AsChar,
     E: ParseError<I>,
 {
-    preceded(tag("//"), not_line_ending)(i)
+    preceded(
+        alt((map(tag("//"), |_| ()), map(char('#'), |_| ()))),
+        not_line_ending,
+    )(i)
 }
 
 fn literal_number<I, E, L>(i: I) -> IResult<I, Expr<L>, E>
@@ -273,7 +277,6 @@ where
                 }
             }
         }?;
-        let (i, _) = opt(char(';'))(i)?;
         Ok((i, expr))
     })(i)
 }
@@ -290,6 +293,7 @@ where
     locate(alt((
         literal_number,
         if_then_else,
+        for_expression,
         variable_call,
         delimited(char('('), ws(strip_location(expression)), ws(char(')'))),
     )))(i)
@@ -327,6 +331,39 @@ where
     )(i)
 }
 
+fn for_expression<I, E, L>(i: I) -> IResult<I, Expr<L>, E>
+where
+    I: Input,
+    <I as InputIter>::Item: AsChar + Copy,
+    <I as InputIter>::IterElem: Clone,
+    <I as InputTakeAtPosition>::Item: AsChar + IsChar + Clone,
+    E: ParseError<I>,
+    L: Located,
+{
+    extended_context(
+        ExtendedContext::ForExpression,
+        preceded(
+            keyword("for"),
+            cut(move |i: I| {
+                let (i, variable_name) = ws(identifier)(i)?;
+                let (i, start) = preceded(ws(char('=')), ws(expression))(i)?;
+                let (i, end) = preceded(ws(char(',')), ws(expression))(i)?;
+                let (i, step) = opt(preceded(ws(char(',')), ws(expression)))(i)?;
+                let (i, body) = preceded(ws(keyword("in")), ws(expression))(i)?;
+                Ok((
+                    i,
+                    Expr::For(Box::new(ForExpression {
+                        variable: variable_name,
+                        start,
+                        end,
+                        step,
+                        body,
+                    })),
+                ))
+            }),
+        ),
+    )(i)
+}
 fn keyword<I, E>(keyword: &'static str) -> impl FnMut(I) -> IResult<I, (), E>
 where
     I: Input,
@@ -396,11 +433,14 @@ where
 {
     extended_context(
         ExtendedContext::Statement,
-        alt((
-            map(function_definition, |fn_def| AST::Function(fn_def)),
-            map(extern_function, |protoype| AST::ExternFunction(protoype)),
-            map(expression, |expr| AST::Expression(expr)),
-        )),
+        terminated(
+            alt((
+                map(function_definition, |fn_def| AST::Function(fn_def)),
+                map(extern_function, |protoype| AST::ExternFunction(protoype)),
+                map(expression, |expr| AST::Expression(expr)),
+            )),
+            opt(char(';')),
+        ),
     )(i)
 }
 

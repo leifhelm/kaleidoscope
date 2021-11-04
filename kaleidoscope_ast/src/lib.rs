@@ -21,6 +21,7 @@ pub enum Expr<X> {
     BinaryOperation(Box<BinaryOperation<X>>),
     If(Box<IfExpression<X>>),
     Call(Call<X>),
+    For(Box<ForExpression<X>>),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -55,6 +56,15 @@ pub struct IfExpression<X> {
     pub condition: Expression<X>,
     pub then: Expression<X>,
     pub r#else: Expression<X>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct ForExpression<X> {
+    pub variable: Identifier<X>,
+    pub start: Expression<X>,
+    pub end: Expression<X>,
+    pub step: Option<Expression<X>>,
+    pub body: Expression<X>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
