@@ -1,7 +1,7 @@
 mod state;
 use crate::state::{
-    bind, bind_, get_scoped, insert_scoped, map, pure, scoped, try_bind, try_bind_, HasScoped,
-    Scoped, ScopedHashMap, State,
+    bind, catch, get_scoped, map, pure_err, scoped, try_result, HasScoped, Scoped, ScopedHashMap,
+    State,
 };
 use kaleidoscope_ast::*;
 
@@ -11,18 +11,21 @@ use std::ops::Deref;
 use std::path::Path;
 use std::sync::Arc;
 
-use inkwell::{
-    basic_block::BasicBlock,
-    builder::Builder,
-    context::Context,
-    module::{Linkage, Module},
-    passes::PassManager,
-    support::LLVMString,
-    targets::{CodeModel, FileType, InitializationConfig, RelocMode, Target, TargetTriple},
-    types::BasicMetadataTypeEnum,
-    values::{BasicMetadataValueEnum, BasicValue, BasicValueEnum, FloatValue, FunctionValue},
-    AddressSpace, FloatPredicate, OptimizationLevel,
+use inkwell::basic_block::BasicBlock;
+use inkwell::builder::Builder;
+use inkwell::context::Context;
+use inkwell::module::{Linkage, Module};
+use inkwell::passes::PassManager;
+use inkwell::support::LLVMString;
+use inkwell::targets::{
+    CodeModel, FileType, InitializationConfig, RelocMode, Target, TargetTriple,
 };
+use inkwell::types::BasicMetadataTypeEnum;
+use inkwell::values::{
+    BasicMetadataValueEnum, BasicValue, BasicValueEnum, FloatValue, FunctionValue,
+};
+use inkwell::{AddressSpace, FloatPredicate, OptimizationLevel};
+
 use thread_local::ThreadLocal;
 
 struct CodeGen<'ctx, X> {
@@ -40,7 +43,7 @@ impl<'ctx, X> CodeGen<'ctx, X> {
         for ast_value in self.ast_list {
             match ast_value {
                 AST::Expression(expr) => {
-                    let (expression, st) = self.toplevel_expression(&expr).run_state(s);
+                    let (expression, st) = self.toplevel_expression(&expr).run(s);
                     s = st;
                     self.add_result(expression);
                 }
@@ -48,7 +51,7 @@ impl<'ctx, X> CodeGen<'ctx, X> {
                     self.function_prototype(prototype);
                 }
                 AST::Function(function) => {
-                    let (function, st) = self.function(&function).run_state(s);
+                    let (function, st) = self.function(&function).run(s);
                     s = st;
                     self.add_result(function);
                 }
@@ -86,7 +89,7 @@ impl<'ctx, X> CodeGen<'ctx, X> {
         &'a self,
         expression: &'ctx Expression<X>,
     ) -> impl State<ModuleState<'ctx>, Result<(), CodeGenError<'ctx, X>>> + 'a {
-        move |mut s: ModuleState<'ctx>| {
+        catch(move |mut s: ModuleState<'ctx>| {
             let printf = match self.module.get_function("printf") {
                 Some(function) => function,
                 None => self.module.add_function(
@@ -128,20 +131,13 @@ impl<'ctx, X> CodeGen<'ctx, X> {
                 .build_global_string_ptr("%f\n", "printf_str")
                 .as_basic_value_enum()
                 .into();
-            let (expr, mut s) = self.expression(expression).run_state(s);
-            let expr = match expr {
-                Ok(val) => val,
-                Err(err) => return (Err(err), s),
-            };
-            let bb = match self.get_insert_block(expression) {
-                Ok(ok) => ok,
-                Err(err) => return (Err(err), s),
-            };
+            let (expr, s) = try_result(self.expression(expression).run(s))?;
+            let (bb, mut s) = pure_err(self.get_insert_block(expression), s)?;
             s.main_bb = Some(bb);
             let args = vec![printf_str, expr.into()];
             self.builder.build_call(printf, &args[..], "printtmp");
-            (Ok(()), s)
-        }
+            Ok(((), s))
+        })
     }
     fn expression<'a>(
         &'a self,
@@ -149,20 +145,15 @@ impl<'ctx, X> CodeGen<'ctx, X> {
     ) -> impl State<ModuleState<'ctx>, Result<FloatValue<'ctx>, CodeGenError<'ctx, X>>> + 'a {
         move |s| match expression.deref() {
             Expr::LiteralNumber(val) => (Ok(self.context.f64_type().const_float(val.wrapped)), s),
-            Expr::Variable(name) => map(
-                |var| match var {
-                    Some(variable) => Ok(variable),
-                    None => Err(CodeGenError::VariableNotFound(name.clone())),
-                },
-                get_scoped(&name.wrapped),
-            )
-            .run_state(s),
-            Expr::BinaryOperation(bin_op) => self.binary_operation(bin_op).run_state(s),
-            Expr::Call(Call { callee, args }) => self.function_call(callee, args).run_state(s),
-            Expr::If(if_expression) => self.if_expression(if_expression, expression).run_state(s),
-            Expr::For(for_expression) => {
-                self.for_expression(for_expression, expression).run_state(s)
-            }
+            Expr::Variable(name) => map(get_scoped(&name.wrapped), |var| match var {
+                Some(variable) => Ok(variable),
+                None => Err(CodeGenError::VariableNotFound(name.clone())),
+            })
+            .run(s),
+            Expr::BinaryOperation(bin_op) => self.binary_operation(bin_op).run(s),
+            Expr::Call(Call { callee, args }) => self.function_call(callee, args).run(s),
+            Expr::If(if_expression) => self.if_expression(if_expression, expression).run(s),
+            Expr::For(for_expression) => self.for_expression(for_expression, expression).run(s),
         }
     }
     fn binary_operation<'a>(
@@ -170,35 +161,30 @@ impl<'ctx, X> CodeGen<'ctx, X> {
         bin_op: &'ctx Box<kaleidoscope_ast::BinaryOperation<X>>,
     ) -> impl State<ModuleState<'ctx>, Result<FloatValue<'ctx>, CodeGenError<'ctx, X>>> + 'a {
         bind(self.expression(&bin_op.left_hand_side), move |lhs| {
-            map(
-                move |rhs| {
-                    let lhs = lhs?;
-                    let rhs = rhs?;
-                    match bin_op.operation.wrapped {
-                        Op::Add => Ok(self.builder.build_float_add(lhs, rhs, "addtmp")),
-                        Op::Subtract => Ok(self.builder.build_float_sub(lhs, rhs, "subtmp")),
-                        Op::Multiply => Ok(self.builder.build_float_mul(lhs, rhs, "multmp")),
-                        Op::Divide => Ok(self.builder.build_float_div(lhs, rhs, "divtmp")),
-                        Op::Greater => Ok(self.build_compare(FloatPredicate::OGT, lhs, rhs)),
-                        Op::GreaterOrEqual => Ok(self.build_compare(FloatPredicate::OGE, lhs, rhs)),
-                        Op::Less => Ok(self.build_compare(FloatPredicate::OLT, lhs, rhs)),
-                        Op::LessOrEqual => Ok(self.build_compare(FloatPredicate::OLE, lhs, rhs)),
-                        Op::Equal => Ok(self.build_compare(FloatPredicate::OEQ, lhs, rhs)),
-                        Op::NotEqual => Ok(self.build_compare(FloatPredicate::ONE, lhs, rhs)),
-                    }
-                },
-                self.expression(&bin_op.right_hand_side),
-            )
+            map(self.expression(&bin_op.right_hand_side), move |rhs| {
+                let lhs = lhs?;
+                let rhs = rhs?;
+                match bin_op.operation.wrapped {
+                    Op::Add => Ok(self.builder.build_float_add(lhs, rhs, "addtmp")),
+                    Op::Subtract => Ok(self.builder.build_float_sub(lhs, rhs, "subtmp")),
+                    Op::Multiply => Ok(self.builder.build_float_mul(lhs, rhs, "multmp")),
+                    Op::Divide => Ok(self.builder.build_float_div(lhs, rhs, "divtmp")),
+                    Op::Greater => Ok(self.build_compare(FloatPredicate::OGT, lhs, rhs)),
+                    Op::GreaterOrEqual => Ok(self.build_compare(FloatPredicate::OGE, lhs, rhs)),
+                    Op::Less => Ok(self.build_compare(FloatPredicate::OLT, lhs, rhs)),
+                    Op::LessOrEqual => Ok(self.build_compare(FloatPredicate::OLE, lhs, rhs)),
+                    Op::Equal => Ok(self.build_compare(FloatPredicate::OEQ, lhs, rhs)),
+                    Op::NotEqual => Ok(self.build_compare(FloatPredicate::ONE, lhs, rhs)),
+                }
+            })
         })
-        // let lhs = self.expression(scope, &bin_op.left_hand_side)?;
-        // let rhs = self.expression(scope, &bin_op.right_hand_side)?;
     }
     fn function_call<'a>(
         &'a self,
         callee: &'ctx XWrapper<String, X>,
         args: &'ctx Vec<Expression<X>>,
     ) -> impl State<ModuleState<'ctx>, Result<FloatValue<'ctx>, CodeGenError<'ctx, X>>> + 'a {
-        move |mut s| -> (_, _) {
+        move |mut s| {
             if let Some(callee_function) = self.module.get_function(&callee.wrapped) {
                 let cf_arg_len = callee_function.count_params();
                 if cf_arg_len != args.len() as u32 {
@@ -213,7 +199,7 @@ impl<'ctx, X> CodeGen<'ctx, X> {
                 }
                 let mut args_v: Vec<BasicMetadataValueEnum> = Vec::with_capacity(args.len());
                 for arg in args {
-                    let (expr, st) = self.expression(&arg).run_state(s);
+                    let (expr, st) = self.expression(&arg).run(s);
                     s = st;
                     match expr {
                         Ok(expr) => args_v.push(expr.into()),
@@ -243,13 +229,13 @@ impl<'ctx, X> CodeGen<'ctx, X> {
         if_expression: &'ctx Box<IfExpression<X>>,
         expression: &'ctx Expression<X>,
     ) -> impl State<ModuleState<'ctx>, Result<FloatValue<'ctx>, CodeGenError<'ctx, X>>> + 'a {
-        move |s| -> (_, _) {
+        move |s| {
             let IfExpression {
                 condition,
                 then,
                 r#else,
             } = if_expression.as_ref();
-            let (condition_val, s) = self.expression(condition).run_state(s);
+            let (condition_val, s) = self.expression(condition).run(s);
             let condition_val = match condition_val {
                 Ok(condition_val) => self.builder.build_float_compare(
                     FloatPredicate::ONE,
@@ -269,7 +255,7 @@ impl<'ctx, X> CodeGen<'ctx, X> {
             self.builder
                 .build_conditional_branch(condition_val, then_bb, else_bb);
             self.builder.position_at_end(then_bb);
-            let (then_val, s) = self.expression(then).run_state(s);
+            let (then_val, s) = self.expression(then).run(s);
             let then_val = match then_val {
                 Ok(val) => val,
                 Err(_) => return (then_val, s),
@@ -280,7 +266,7 @@ impl<'ctx, X> CodeGen<'ctx, X> {
                 Err(err) => return (Err(err), s),
             };
             self.builder.position_at_end(else_bb);
-            let (else_val, s) = self.expression(r#else).run_state(s);
+            let (else_val, s) = self.expression(r#else).run(s);
             let else_val = match else_val {
                 Ok(val) => val,
                 Err(_) => return (else_val, s),
@@ -313,58 +299,51 @@ impl<'ctx, X> CodeGen<'ctx, X> {
             step,
             body,
         } = for_expression.as_ref();
-        scoped(try_bind(self.expression(start), move |start_val| {
-            let function = self.get_function(expression)?;
+        scoped(catch(move |s| {
+            let (start_val, s) = try_result(self.expression(start).run(s))?;
+            let (function, s) = pure_err(self.get_function(expression), s)?;
             let loop_bb = self.context.append_basic_block(function, "loop");
             self.builder.build_unconditional_branch(loop_bb);
-            let preheader_bb = self.get_insert_block(expression)?;
+            let (preheader_bb, mut s) = pure_err(self.get_insert_block(expression), s)?;
             self.builder.position_at_end(loop_bb);
             let variable_val = self
                 .builder
                 .build_phi(self.context.f64_type(), &variable.wrapped);
-            Ok(bind_(
-                insert_scoped(
-                    &variable.wrapped,
-                    variable_val.as_basic_value().into_float_value(),
-                ),
-                try_bind_(self.expression(body), move |_body_val| {
-                    try_bind_(
-                        move |s| match step {
-                            Some(step) => self.expression(step).run_state(s),
-                            None => (Ok(self.context.f64_type().const_float(1.0)), s),
-                        },
-                        move |step_val| {
-                            let next_var = self.builder.build_float_add(
-                                variable_val.as_basic_value().into_float_value(),
-                                step_val.as_basic_value_enum().into_float_value(),
-                                "nextvar",
-                            );
-                            try_bind(self.expression(end), move |end_cond| {
-                                let end_cond = self.builder.build_float_compare(
-                                    FloatPredicate::ONE,
-                                    end_cond,
-                                    self.context.f64_type().const_float(0.0),
-                                    "loopcond",
-                                );
-                                let loop_end_bb = self.get_insert_block(expression)?;
-                                let phi_incomming = vec![
-                                    (&start_val as &dyn BasicValue, preheader_bb),
-                                    (&next_var as &dyn BasicValue, loop_end_bb),
-                                ];
-                                variable_val.add_incoming(&phi_incomming);
-                                let after_bb =
-                                    self.context.append_basic_block(function, "afterloop");
-                                self.builder
-                                    .build_conditional_branch(end_cond, loop_bb, after_bb);
-                                self.builder.position_at_end(after_bb);
-                                Ok(pure(Ok(self.context.f64_type().const_float(0.0))))
-                            })
-                        },
-                    )
-                }),
-            ))
+            s.get_scope_mut().insert(
+                &variable.wrapped,
+                variable_val.as_basic_value().into_float_value(),
+            );
+            let (_body_val, s) = try_result(self.expression(body).run(s))?;
+            let (step_val, s) = match step {
+                Some(step) => try_result(self.expression(step).run(s))?,
+                None => (self.context.f64_type().const_float(1.0), s),
+            };
+            let next_var = self.builder.build_float_add(
+                variable_val.as_basic_value().into_float_value(),
+                step_val.as_basic_value_enum().into_float_value(),
+                "nextvar",
+            );
+            let (end_cond, s) = try_result(self.expression(end).run(s))?;
+            let end_cond = self.builder.build_float_compare(
+                FloatPredicate::ONE,
+                end_cond,
+                self.context.f64_type().const_float(0.0),
+                "loopcond",
+            );
+            let (loop_end_bb, s) = pure_err(self.get_insert_block(expression), s)?;
+            let phi_incomming = vec![
+                (&start_val as &dyn BasicValue, preheader_bb),
+                (&next_var as &dyn BasicValue, loop_end_bb),
+            ];
+            variable_val.add_incoming(&phi_incomming);
+            let after_bb = self.context.append_basic_block(function, "afterloop");
+            self.builder
+                .build_conditional_branch(end_cond, loop_bb, after_bb);
+            self.builder.position_at_end(after_bb);
+            Ok((self.context.f64_type().const_float(0.0), s))
         }))
     }
+
     fn get_insert_block(
         &self,
         expression: &'ctx Expression<X>,
@@ -376,6 +355,7 @@ impl<'ctx, X> CodeGen<'ctx, X> {
                 LLVMStateError::NoInsertBlock,
             ))
     }
+
     fn get_function(
         &self,
         expression: &'ctx Expression<X>,
@@ -387,6 +367,7 @@ impl<'ctx, X> CodeGen<'ctx, X> {
                 LLVMStateError::NoParentFunction,
             ))
     }
+
     fn build_compare(
         &self,
         op: FloatPredicate,
@@ -397,6 +378,7 @@ impl<'ctx, X> CodeGen<'ctx, X> {
         self.builder
             .build_unsigned_int_to_float(int_result, self.context.f64_type(), "booltmp")
     }
+
     fn function_prototype(&self, prototype: &'ctx FunctionPrototype<X>) -> FunctionValue<'ctx> {
         let doubles: Vec<BasicMetadataTypeEnum> =
             vec![self.context.f64_type().into(); prototype.args.len()];
@@ -414,7 +396,7 @@ impl<'ctx, X> CodeGen<'ctx, X> {
         function_dec: &'ctx Function<X>,
     ) -> impl State<ModuleState<'ctx>, Result<FunctionValue<'ctx>, CodeGenError<'ctx, X>>> + 'a
     {
-        scoped(move |mut s| {
+        scoped(move |mut s: ModuleState<'ctx>| {
             let proto = &function_dec.prototype;
             let function = self
                 .module
@@ -426,10 +408,9 @@ impl<'ctx, X> CodeGen<'ctx, X> {
             for arg in function.get_param_iter() {
                 let name = name_of_basic_value(&arg);
                 let name_ref: &str = name.borrow();
-                let (_, st) = insert_scoped(name_ref, arg.into_float_value()).run_state(s);
-                s = st;
+                s.get_scope_mut().insert(name_ref, arg.into_float_value());
             }
-            let (body, s) = self.expression(&function_dec.body).run_state(s);
+            let (body, s) = self.expression(&function_dec.body).run(s);
             let body = match body {
                 Ok(val) => val,
                 Err(err) => return (Err(err), s),

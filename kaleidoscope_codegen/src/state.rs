@@ -3,14 +3,14 @@ use std::collections::HashMap;
 use std::hash::Hash;
 
 pub(crate) trait State<S, A> {
-    fn run_state(self, s: S) -> (A, S);
+    fn run(self, s: S) -> (A, S);
 }
 
 impl<S, A, F> State<S, A> for F
 where
     F: FnOnce(S) -> (A, S),
 {
-    fn run_state(self, s: S) -> (A, S) {
+    fn run(self, s: S) -> (A, S) {
         self(s)
     }
 }
@@ -27,8 +27,8 @@ where
     SB: State<S, B>,
 {
     move |s| {
-        let (a, s) = state.run_state(s);
-        f(a).run_state(s)
+        let (a, s) = state.run(s);
+        f(a).run(s)
     }
 }
 
@@ -40,9 +40,9 @@ pub(crate) fn modify<S>(f: impl FnOnce(S) -> S) -> impl State<S, ()> {
     move |s| ((), f(s))
 }
 
-pub(crate) fn map<S, A, B>(f: impl FnOnce(A) -> B, state: impl State<S, A>) -> impl State<S, B> {
+pub(crate) fn map<S, A, B>(state: impl State<S, A>, f: impl FnOnce(A) -> B) -> impl State<S, B> {
     move |s| {
-        let (a, s) = state.run_state(s);
+        let (a, s) = state.run(s);
         (f(a), s)
     }
 }
@@ -55,10 +55,10 @@ where
     SB: State<S, Result<B, E>>,
 {
     move |s| {
-        let (a, s) = state.run_state(s);
+        let (a, s) = state.run(s);
         match a {
             Ok(a) => match f(a) {
-                Ok(state) => state.run_state(s),
+                Ok(state) => state.run(s),
                 Err(err) => (Err(err), s),
             },
             Err(err) => (Err(err), s),
@@ -117,23 +117,6 @@ where
     move |s: St| {
         let value = HasScoped::get_scope(&s).get(key);
         (value, s)
-    }
-}
-
-pub(crate) fn insert_scoped<'a, K, V, S, St, Q>(
-    key: &'a Q,
-    value: V,
-) -> impl State<St, Option<V>> + 'a
-where
-    S: Scoped<K, V>,
-    St: HasScoped<S>,
-    K: Borrow<Q>,
-    Q: ?Sized + ToOwned<Owned = K> + Hash + Eq,
-    V: 'a,
-{
-    move |mut s: St| {
-        let old_value = HasScoped::get_scope_mut(&mut s).insert(key, value);
-        (old_value, s)
     }
 }
 

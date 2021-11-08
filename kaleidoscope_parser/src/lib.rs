@@ -4,17 +4,17 @@ pub use kaleidoscope_ast as ast;
 use kaleidoscope_ast::*;
 
 extern crate nom;
+use nom::branch::alt;
+use nom::bytes::complete::tag;
+use nom::character::complete::{char, multispace0, multispace1, not_line_ending};
+use nom::combinator::{all_consuming, cut, map, opt, recognize, success, value};
+use nom::error::ContextError;
+use nom::multi::{many0, separated_list1};
+use nom::number::complete::double;
+use nom::sequence::{delimited, pair, preceded, terminated};
 use nom::{
-    branch::alt,
-    bytes::complete::tag,
-    character::complete::{char, multispace0, multispace1, not_line_ending},
-    combinator::{all_consuming, cut, map, opt, recognize, success, value},
-    error::ContextError,
-    multi::{many0, separated_list1},
-    number::complete::double,
-    sequence::{delimited, pair, preceded, terminated},
     AsBytes, AsChar, Compare, IResult, InputIter, InputLength, InputTake, InputTakeAtPosition,
-    Offset, Parser, Slice,
+    Offset, ParseTo, Parser, Slice,
 };
 use nom_unicode::{
     complete::{alpha1, alphanumeric1},
@@ -41,6 +41,7 @@ pub trait Input:
     + Offset
     + LocatedInput
     + Into<String>
+    + ParseTo<f64>
     + PartialEq
     + Clone
 // https://github.com/rust-lang/rust/issues/54149
@@ -63,6 +64,7 @@ impl<T> Input for T where
         + Offset
         + LocatedInput
         + Into<String>
+        + ParseTo<f64>
         + PartialEq
         + Clone // https://github.com/rust-lang/rust/issues/54149
                 // <T as InputTakeAtPosition>::Item: AsChar + Clone,

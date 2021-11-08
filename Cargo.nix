@@ -912,8 +912,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/TheDan64/inkwell";
-          rev = "45d4dcbeabb8b3c074ef40aeb0e816704c293f31";
-          sha256 = "1h4vi7hs33m298mhilz95qib2w433777140srdjvh7969w2wdqqj";
+          rev = "f3a78d1e3c95505f6214359f719885571143c2ac";
+          sha256 = "1hrbhw47b50kkzygnsnmih43df12p4x4d14gw8bmxzgia9kmq3yi";
         };
         authors = [
           "Daniel Kolsoi <thadan64@gmail.com>"
@@ -988,13 +988,13 @@ rec {
       };
       "inkwell_internals" = rec {
         crateName = "inkwell_internals";
-        version = "0.4.0";
+        version = "0.5.0";
         edition = "2018";
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/TheDan64/inkwell";
-          rev = "45d4dcbeabb8b3c074ef40aeb0e816704c293f31";
-          sha256 = "1h4vi7hs33m298mhilz95qib2w433777140srdjvh7969w2wdqqj";
+          rev = "f3a78d1e3c95505f6214359f719885571143c2ac";
+          sha256 = "1hrbhw47b50kkzygnsnmih43df12p4x4d14gw8bmxzgia9kmq3yi";
         };
         procMacro = true;
         authors = [
@@ -1383,9 +1383,9 @@ rec {
       };
       "libc" = rec {
         crateName = "libc";
-        version = "0.2.106";
+        version = "0.2.107";
         edition = "2015";
-        sha256 = "0wynaqs2ix4fqk603qhi7axw1fg9p5rhbcp9nhrs6fg0m7wm61d6";
+        sha256 = "06fjyglysl1aph07hc8cl1akw25lizcvwppqbralynys0hsf5rgv";
         authors = [
           "The Rust Project Developers"
         ];
@@ -1514,7 +1514,7 @@ rec {
           "rustc-dep-of-std" = [ "core" "compiler_builtins" ];
           "use_std" = [ "std" ];
         };
-        resolvedDefaultFeatures = [ "default" "std" "use_std" ];
+        resolvedDefaultFeatures = [ "default" "std" ];
       };
       "memoffset" = rec {
         crateName = "memoffset";
@@ -1536,22 +1536,22 @@ rec {
       };
       "minimal-lexical" = rec {
         crateName = "minimal-lexical";
-        version = "0.1.4";
+        version = "0.2.1";
         edition = "2018";
-        sha256 = "0xynhr97vyv5n5lls41dl7bfa3ba122lix9mqij1l7yprl6n6r4w";
+        sha256 = "16ppc5g84aijpri4jzv14rvcnslvlpphbszc7zzp6vfkddf4qdb8";
         authors = [
           "Alex Huszagh <ahuszagh@gmail.com>"
         ];
         features = {
           "default" = [ "std" ];
         };
-        resolvedDefaultFeatures = [ "default" "std" ];
+        resolvedDefaultFeatures = [ "std" ];
       };
       "nom" = rec {
         crateName = "nom";
-        version = "7.0.0";
+        version = "7.1.0";
         edition = "2018";
-        sha256 = "1ha24yclw4m74gi9p5c3d68rhrrcb7qvkgicz153p5cahck9vzbz";
+        sha256 = "0281jdx0xcyhjgs1jkj9pii8py1clcpazg41bgz7d71qxzhi278v";
         authors = [
           "contact@geoffroycouprie.com"
         ];
@@ -1564,6 +1564,7 @@ rec {
           {
             name = "minimal-lexical";
             packageId = "minimal-lexical";
+            usesDefaultFeatures = false;
           }
         ];
         buildDependencies = [
@@ -1574,7 +1575,7 @@ rec {
         ];
         features = {
           "default" = [ "std" ];
-          "std" = [ "alloc" "memchr/use_std" ];
+          "std" = [ "alloc" "memchr/std" "minimal-lexical/std" ];
         };
         resolvedDefaultFeatures = [ "alloc" "default" "std" ];
       };
@@ -2295,9 +2296,9 @@ rec {
       };
       "serde_json" = rec {
         crateName = "serde_json";
-        version = "1.0.68";
+        version = "1.0.69";
         edition = "2018";
-        sha256 = "1n2jg9cf14lrxasj63rlrwxlw5v79m851gycw6zy20jnjx9hhs8g";
+        sha256 = "1y22sfi9z3bkf9j6qnd036cqgraq0kr94ss7sghcfa8i8d78crp4";
         authors = [
           "Erick Tryzelaar <erick.tryzelaar@gmail.com>"
           "David Tolnay <dtolnay@gmail.com>"
