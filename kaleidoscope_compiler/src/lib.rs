@@ -1,7 +1,5 @@
 mod compiler;
 mod error;
-#[cfg(test)]
-mod tests;
 
 use atty::Stream;
 use bunt::termcolor::{BufferWriter, ColorChoice};
