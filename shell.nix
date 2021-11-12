@@ -1,11 +1,7 @@
-{ pkgs ? import <nixpkgs> {
-#   overlays = [
-#     (import "${
-#       fetchTarball
-#         "https://github.com/nix-community/fenix/archive/main.tar.gz"
-#     }/overlay.nix")
-#   ];
-}
+# Any copyright is dedicated to the Public Domain.
+# https://creativecommons.org/publicdomain/zero/1.0/
+
+{ pkgs ? import <nixpkgs> { }
 , devTools ? true
 }:
 with pkgs;
@@ -13,14 +9,6 @@ stdenv.mkDerivation {
   name = "env";
   nativeBuildInputs = [ pkg-config ];
   buildInputs = [
-    # (fenix.complete.withComponents [
-    #   "cargo"
-    #   "clippy"
-    #   "rust-src"
-    #   "rustc"
-    #   "rustfmt"
-    # ])
-    # rust-analyzer-nightly
     cargo
     llvmPackages_13.libllvm.dev
     libffi.dev

@@ -89,16 +89,6 @@ rec {
       # File a bug if you depend on any for non-debug work!
       debug = internal.debugCrate { inherit packageId; };
     };
-    "kaleidoscope_parser_pest" = rec {
-      packageId = "kaleidoscope_parser_pest";
-      build = internal.buildRustCrateWithFeatures {
-        packageId = "kaleidoscope_parser_pest";
-      };
-
-      # Debug support which might change between releases.
-      # File a bug if you depend on any for non-debug work!
-      debug = internal.debugCrate { inherit packageId; };
-    };
   };
 
   # A derivation that joins the outputs of all workspace members together.
@@ -219,51 +209,6 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" ];
       };
-      "block-buffer" = rec {
-        crateName = "block-buffer";
-        version = "0.7.3";
-        edition = "2015";
-        sha256 = "12v8wizynqin0hqf140kmp9s38q223mp1b0hkqk8j5pk8720v560";
-        authors = [
-          "RustCrypto Developers"
-        ];
-        dependencies = [
-          {
-            name = "block-padding";
-            packageId = "block-padding";
-          }
-          {
-            name = "byte-tools";
-            packageId = "byte-tools";
-          }
-          {
-            name = "byteorder";
-            packageId = "byteorder";
-            usesDefaultFeatures = false;
-          }
-          {
-            name = "generic-array";
-            packageId = "generic-array";
-          }
-        ];
-
-      };
-      "block-padding" = rec {
-        crateName = "block-padding";
-        version = "0.1.5";
-        edition = "2015";
-        sha256 = "1xbkmysiz23vimd17rnsjpw9bgjxipwfslwyygqlkx4in3dxwygs";
-        authors = [
-          "RustCrypto Developers"
-        ];
-        dependencies = [
-          {
-            name = "byte-tools";
-            packageId = "byte-tools";
-          }
-        ];
-
-      };
       "bstr" = rec {
         crateName = "bstr";
         version = "0.2.17";
@@ -366,28 +311,6 @@ rec {
         ];
 
       };
-      "byte-tools" = rec {
-        crateName = "byte-tools";
-        version = "0.3.1";
-        edition = "2015";
-        sha256 = "1mqi29wsm8njpl51pfwr31wmpzs5ahlcb40wsjyd92l90ixcmdg3";
-        authors = [
-          "RustCrypto Developers"
-        ];
-
-      };
-      "byteorder" = rec {
-        crateName = "byteorder";
-        version = "1.4.3";
-        edition = "2018";
-        sha256 = "0456lv9xi1a5bcm32arknf33ikv76p3fr9yzki4lb2897p2qkh8l";
-        authors = [
-          "Andrew Gallant <jamslam@gmail.com>"
-        ];
-        features = {
-          "default" = [ "std" ];
-        };
-      };
       "cast" = rec {
         crateName = "cast";
         version = "0.2.7";
@@ -409,10 +332,10 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.0.71";
+        version = "1.0.72";
         edition = "2018";
         crateBin = [];
-        sha256 = "1pgflzb5dc9pli1lfwfv5jksmz57j15iqqxqpdbnjq4lclfnihkr";
+        sha256 = "1vl50h2qh0nh0iddzj6gd1pnxnxpvwmbfxc30578c1pajmxi7a92";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -813,24 +736,6 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" ];
       };
-      "digest" = rec {
-        crateName = "digest";
-        version = "0.8.1";
-        edition = "2015";
-        sha256 = "1madjl27f3kj5ql7kwgvb9c8b7yb7bv7yfgx7rqzj4i3fp4cil7k";
-        authors = [
-          "RustCrypto Developers"
-        ];
-        dependencies = [
-          {
-            name = "generic-array";
-            packageId = "generic-array";
-          }
-        ];
-        features = {
-          "dev" = [ "blobby" ];
-        };
-      };
       "either" = rec {
         crateName = "either";
         version = "1.6.1";
@@ -843,34 +748,6 @@ rec {
           "default" = [ "use_std" ];
         };
         resolvedDefaultFeatures = [ "default" "use_std" ];
-      };
-      "fake-simd" = rec {
-        crateName = "fake-simd";
-        version = "0.1.2";
-        edition = "2015";
-        sha256 = "1vfylvk4va2ivqx85603lyqqp0zk52cgbs4n5nfbbbqx577qm2p8";
-        authors = [
-          "The Rust-Crypto Project Developers"
-        ];
-
-      };
-      "generic-array" = rec {
-        crateName = "generic-array";
-        version = "0.12.4";
-        edition = "2015";
-        sha256 = "1gfpay78vijl9vrwl1k9v7fbvbhkhcmnrk4kfg9l6x24y4s9zpzz";
-        libName = "generic_array";
-        authors = [
-          "Bartłomiej Kamiński <fizyk20@gmail.com>"
-          "Aaron Trent <novacrazy@gmail.com>"
-        ];
-        dependencies = [
-          {
-            name = "typenum";
-            packageId = "typenum";
-          }
-        ];
-
       };
       "half" = rec {
         crateName = "half";
@@ -1127,10 +1004,6 @@ rec {
             name = "kaleidoscope_parser";
             packageId = "kaleidoscope_parser";
           }
-          {
-            name = "kaleidoscope_parser_pest";
-            packageId = "kaleidoscope_parser_pest";
-          }
         ];
 
       };
@@ -1230,49 +1103,6 @@ rec {
         ];
 
       };
-      "kaleidoscope_parser_pest" = rec {
-        crateName = "kaleidoscope_parser_pest";
-        version = "0.1.0";
-        edition = "2018";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./kaleidoscope_parser_pest; };
-        authors = [
-          "Jakob Leifhelm <jakob.leifhelm@gmail.com>"
-        ];
-        dependencies = [
-          {
-            name = "kaleidoscope_ast";
-            packageId = "kaleidoscope_ast";
-          }
-          {
-            name = "kaleidoscope_error";
-            packageId = "kaleidoscope_error";
-            features = [ "bunt" "codespan-reporting" ];
-          }
-          {
-            name = "lexical-parse-float";
-            packageId = "lexical-parse-float";
-          }
-          {
-            name = "pest";
-            packageId = "pest";
-          }
-          {
-            name = "pest_derive";
-            packageId = "pest_derive";
-          }
-        ];
-        devDependencies = [
-          {
-            name = "criterion";
-            packageId = "criterion";
-          }
-          {
-            name = "termcolor";
-            packageId = "termcolor";
-          }
-        ];
-
-      };
       "lazy_static" = rec {
         crateName = "lazy_static";
         version = "1.4.0";
@@ -1284,102 +1114,6 @@ rec {
         features = {
           "spin_no_std" = [ "spin" ];
         };
-      };
-      "lexical-parse-float" = rec {
-        crateName = "lexical-parse-float";
-        version = "0.8.2";
-        edition = "2018";
-        sha256 = "03mzjx8k2jzv2vbl1xb589p9zfs5i2m23vcmm6fjsxps0k86dl5l";
-        authors = [
-          "Alex Huszagh <ahuszagh@gmail.com>"
-        ];
-        dependencies = [
-          {
-            name = "lexical-parse-integer";
-            packageId = "lexical-parse-integer";
-            usesDefaultFeatures = false;
-          }
-          {
-            name = "lexical-util";
-            packageId = "lexical-util";
-            features = [ "parse-floats" ];
-          }
-          {
-            name = "static_assertions";
-            packageId = "static_assertions";
-          }
-        ];
-        features = {
-          "compact" = [ "lexical-util/compact" "lexical-parse-integer/compact" ];
-          "default" = [ "std" ];
-          "f128" = [ "lexical-util/f128" ];
-          "f16" = [ "lexical-util/f16" ];
-          "format" = [ "lexical-util/format" "lexical-parse-integer/format" ];
-          "lint" = [ "lexical-util/lint" "lexical-parse-integer/lint" ];
-          "nightly" = [ "lexical-parse-integer/nightly" ];
-          "power-of-two" = [ "lexical-util/power-of-two" "lexical-parse-integer/power-of-two" ];
-          "radix" = [ "lexical-util/radix" "lexical-parse-integer/radix" "power-of-two" ];
-          "safe" = [ "lexical-parse-integer/safe" ];
-          "std" = [ "lexical-util/std" "lexical-parse-integer/std" ];
-        };
-        resolvedDefaultFeatures = [ "default" "std" ];
-      };
-      "lexical-parse-integer" = rec {
-        crateName = "lexical-parse-integer";
-        version = "0.8.0";
-        edition = "2018";
-        sha256 = "1b2kxprq3636x3j1qy68202q7yzsmq5c7h9w7m7zrh4cvanjpjgj";
-        authors = [
-          "Alex Huszagh <ahuszagh@gmail.com>"
-        ];
-        dependencies = [
-          {
-            name = "lexical-util";
-            packageId = "lexical-util";
-            usesDefaultFeatures = false;
-            features = [ "parse-integers" ];
-          }
-          {
-            name = "static_assertions";
-            packageId = "static_assertions";
-          }
-        ];
-        features = {
-          "compact" = [ "lexical-util/compact" ];
-          "default" = [ "std" ];
-          "format" = [ "lexical-util/format" ];
-          "lint" = [ "lexical-util/lint" ];
-          "power-of-two" = [ "lexical-util/power-of-two" ];
-          "radix" = [ "lexical-util/radix" "power-of-two" ];
-          "std" = [ "lexical-util/std" ];
-        };
-        resolvedDefaultFeatures = [ "std" ];
-      };
-      "lexical-util" = rec {
-        crateName = "lexical-util";
-        version = "0.8.1";
-        edition = "2018";
-        sha256 = "14g224mm2li0q6jnnqh92dzx3zjyflji3i8dz4xf6vp1mb66kxkg";
-        authors = [
-          "Alex Huszagh <ahuszagh@gmail.com>"
-        ];
-        dependencies = [
-          {
-            name = "static_assertions";
-            packageId = "static_assertions";
-          }
-        ];
-        features = {
-          "default" = [ "std" ];
-          "f128" = [ "floats" ];
-          "f16" = [ "floats" ];
-          "parse-floats" = [ "parse" "floats" ];
-          "parse-integers" = [ "parse" "integers" ];
-          "radix" = [ "power-of-two" ];
-          "write-floats" = [ "write" "floats" ];
-          "write-integers" = [ "write" "integers" ];
-        };
-        resolvedDefaultFeatures = [ "default" "floats" "integers" "parse" "parse-floats" "parse-integers" "std" ];
       };
       "libc" = rec {
         crateName = "libc";
@@ -1489,16 +1223,6 @@ rec {
           "kv_unstable_std" = [ "std" "kv_unstable" "value-bag/error" ];
           "kv_unstable_sval" = [ "kv_unstable" "value-bag/sval" "sval" ];
         };
-      };
-      "maplit" = rec {
-        crateName = "maplit";
-        version = "1.0.2";
-        edition = "2015";
-        sha256 = "07b5kjnhrrmfhgqm9wprjw8adx6i225lqp49gasgqg74lahnabiy";
-        authors = [
-          "bluss"
-        ];
-
       };
       "memchr" = rec {
         crateName = "memchr";
@@ -1666,16 +1390,6 @@ rec {
         ];
 
       };
-      "opaque-debug" = rec {
-        crateName = "opaque-debug";
-        version = "0.2.3";
-        edition = "2015";
-        sha256 = "172j6bs8ndclqxa2m64qc0y1772rr73g4l9fg2svscgicnbfff98";
-        authors = [
-          "RustCrypto Developers"
-        ];
-
-      };
       "parking_lot" = rec {
         crateName = "parking_lot";
         version = "0.11.2";
@@ -1768,86 +1482,6 @@ rec {
         features = {
           "pretty-print" = [ "serde" "serde_json" ];
         };
-      };
-      "pest_derive" = rec {
-        crateName = "pest_derive";
-        version = "2.1.0";
-        edition = "2015";
-        sha256 = "1l5jfa6ril71cw5nsiw0r45br54dd8cj2r1nc2d1wq6wb3jilgc3";
-        procMacro = true;
-        authors = [
-          "Dragoș Tiselice <dragostiselice@gmail.com>"
-        ];
-        dependencies = [
-          {
-            name = "pest";
-            packageId = "pest";
-          }
-          {
-            name = "pest_generator";
-            packageId = "pest_generator";
-          }
-        ];
-
-      };
-      "pest_generator" = rec {
-        crateName = "pest_generator";
-        version = "2.1.3";
-        edition = "2015";
-        sha256 = "0mfgl0p6v91ywdqr9i8w053v70cnfqjk8y5rhwbvir9idridpf4r";
-        authors = [
-          "Dragoș Tiselice <dragostiselice@gmail.com>"
-        ];
-        dependencies = [
-          {
-            name = "pest";
-            packageId = "pest";
-          }
-          {
-            name = "pest_meta";
-            packageId = "pest_meta";
-          }
-          {
-            name = "proc-macro2";
-            packageId = "proc-macro2";
-          }
-          {
-            name = "quote";
-            packageId = "quote";
-          }
-          {
-            name = "syn";
-            packageId = "syn";
-          }
-        ];
-
-      };
-      "pest_meta" = rec {
-        crateName = "pest_meta";
-        version = "2.1.3";
-        edition = "2015";
-        sha256 = "07d1jbbbpxpchk0j37ljas46sdyyg599z3zw2ac0f5sk9x06xgjl";
-        authors = [
-          "Dragoș Tiselice <dragostiselice@gmail.com>"
-        ];
-        dependencies = [
-          {
-            name = "maplit";
-            packageId = "maplit";
-          }
-          {
-            name = "pest";
-            packageId = "pest";
-          }
-        ];
-        buildDependencies = [
-          {
-            name = "sha-1";
-            packageId = "sha-1";
-            usesDefaultFeatures = false;
-          }
-        ];
-
       };
       "plotters" = rec {
         crateName = "plotters";
@@ -2327,47 +1961,6 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" "std" ];
       };
-      "sha-1" = rec {
-        crateName = "sha-1";
-        version = "0.8.2";
-        edition = "2015";
-        sha256 = "1pv387q0r7llk2cqzyq0nivzvkgqgzsiygqzlv7b68z9xl5lvngp";
-        libName = "sha1";
-        authors = [
-          "RustCrypto Developers"
-        ];
-        dependencies = [
-          {
-            name = "block-buffer";
-            packageId = "block-buffer";
-          }
-          {
-            name = "digest";
-            packageId = "digest";
-          }
-          {
-            name = "fake-simd";
-            packageId = "fake-simd";
-          }
-          {
-            name = "opaque-debug";
-            packageId = "opaque-debug";
-          }
-        ];
-        devDependencies = [
-          {
-            name = "digest";
-            packageId = "digest";
-            features = [ "dev" ];
-          }
-        ];
-        features = {
-          "asm" = [ "sha1-asm" ];
-          "asm-aarch64" = [ "asm" "libc" ];
-          "default" = [ "std" ];
-          "std" = [ "digest/std" ];
-        };
-      };
       "smallvec" = rec {
         crateName = "smallvec";
         version = "1.7.0";
@@ -2378,17 +1971,6 @@ rec {
         ];
         features = {
           "const_new" = [ "const_generics" ];
-        };
-      };
-      "static_assertions" = rec {
-        crateName = "static_assertions";
-        version = "1.1.0";
-        edition = "2015";
-        sha256 = "0gsl6xmw10gvn3zs1rv99laj5ig7ylffnh71f9l34js4nr4r7sx2";
-        authors = [
-          "Nikolai Vazquez"
-        ];
-        features = {
         };
       };
       "strsim" = rec {
@@ -2509,19 +2091,6 @@ rec {
           }
         ];
 
-      };
-      "typenum" = rec {
-        crateName = "typenum";
-        version = "1.14.0";
-        edition = "2018";
-        sha256 = "1v2r349b2dr0pknpjk3nkrbi3mhaa3wl7zi7bdbla4zmcni0hdxn";
-        build = "build/main.rs";
-        authors = [
-          "Paho Lurie-Gregg <paho@paholg.com>"
-          "Andre Bogus <bogusandre@gmail.com>"
-        ];
-        features = {
-        };
       };
       "ucd-trie" = rec {
         crateName = "ucd-trie";

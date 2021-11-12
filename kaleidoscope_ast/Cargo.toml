@@ -3,5 +3,6 @@ name = "kaleidoscope_ast"
 version = "0.1.0"
 authors = ["Jakob Leifhelm <jakob.leifhelm@gmail.com>"]
 edition = "2018"
+license = "MPL-2.0"
 
 [dependencies]

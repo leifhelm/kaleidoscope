@@ -3,11 +3,12 @@ name = "kaleidoscope_parser"
 version = "0.1.0"
 authors = ["Jakob Leifhelm <jakob.leifhelm@gmail.com>"]
 edition = "2018"
+license = "MPL-2.0"
 
 [dependencies]
 kaleidoscope_ast = { path = "../kaleidoscope_ast" }
 kaleidoscope_error = { path = "../kaleidoscope_error" }
-nom = "^7.0"
+nom = "^7.1"
 nom-unicode = "^0.3"
 termtree = "^0.2"
 
