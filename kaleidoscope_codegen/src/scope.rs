@@ -3,7 +3,10 @@ use std::collections::HashMap;
 use std::hash::Hash;
 
 pub(crate) trait Scoped<K, V> {
-    fn get(&self, key: &K) -> Option<V>;
+    fn get<Q>(&self, key: &Q) -> Option<V>
+    where
+        K: Borrow<Q>,
+        Q: ?Sized + Hash + Eq;
     fn insert<Q>(&mut self, key: &Q, value: V) -> Option<V>
     where
         K: Borrow<Q>,
@@ -40,7 +43,11 @@ where
     K: Hash + Eq,
     V: Clone,
 {
-    fn get(&self, key: &K) -> Option<V> {
+    fn get<Q>(&self, key: &Q) -> Option<V>
+    where
+        K: Borrow<Q>,
+        Q: ?Sized + Hash + Eq,
+    {
         HashMap::get(&self.values, key).map(|value| value.to_owned())
     }
 
@@ -65,7 +72,7 @@ where
                     None
                 }
             },
-            None => None,
+            None => old_value,
         }
     }
 
@@ -102,7 +109,11 @@ where
     HS: HasScoped<Scope = S>,
     S: Scoped<K, V>,
 {
-    fn get(&self, key: &K) -> Option<V> {
+    fn get<Q>(&self, key: &Q) -> Option<V>
+    where
+        K: Borrow<Q>,
+        Q: ?Sized + Hash + Eq,
+    {
         self.get_scope().get(key)
     }
 

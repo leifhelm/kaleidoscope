@@ -1,4 +1,7 @@
 mod scope;
+#[cfg(test)]
+mod tests;
+
 use kaleidoscope_ast::*;
 use scope::{scoped, HasScoped, Scoped, ScopedHashMap};
 
