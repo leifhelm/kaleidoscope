@@ -8,13 +8,6 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  check-formatting:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v2
-    - name: Check formatting
-      run: cargo fmt --all -- --check
 
   build:
     runs-on: ubuntu-latest
@@ -32,18 +25,18 @@ jobs:
     - name: Flake check
       run: nix flake check
 
-  test:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - uses: cachix/install-nix-action@v14
-      with:
-        install_url: https://nixos-nix-install-tests.cachix.org/serve/vij683ly7sl95nnhb67bdjjfabclr85m/install
-        install_options: '--tarball-url-prefix https://nixos-nix-install-tests.cachix.org/serve'
-        extra_nix_config: |
-          experimental-features = nix-command flakes
-          access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-    - name: Setup glibc
-      run: export LD_LIBRARY_PATH=$(nix eval --raw nixpkgs#glibc)/lib
-    - name: Test
-      run: nix develop .#cargo -c cargo test --verbose
+  # test:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #   - uses: cachix/install-nix-action@v14
+  #     with:
+  #       install_url: https://nixos-nix-install-tests.cachix.org/serve/vij683ly7sl95nnhb67bdjjfabclr85m/install
+  #       install_options: '--tarball-url-prefix https://nixos-nix-install-tests.cachix.org/serve'
+  #       extra_nix_config: |
+  #         experimental-features = nix-command flakes
+  #         access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+  #   - name: Setup glibc
+  #     run: export LD_LIBRARY_PATH=$(nix eval --raw nixpkgs#glibc)/lib
+  #   - name: Test
+  #     run: nix develop .#cargo -c cargo test --verbose
