@@ -2,6 +2,7 @@
 # https://creativecommons.org/publicdomain/zero/1.0/
 
 {
+  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
   inputs.flake-utils.url = "github:numtide/flake-utils";
 
   outputs = { self, nixpkgs, flake-utils }:
