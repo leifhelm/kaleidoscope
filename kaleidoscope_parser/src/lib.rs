@@ -150,16 +150,19 @@ where
     E: ParseError<I>,
     F: Parser<I, O, E>,
 {
-    delimited(
-        char('('),
-        cut(map(
-            opt(terminated(
-                separated_list1(ws(char(',')), ws(inner)),
-                opt(ws(char(','))),
+    extended_context(
+        ExtendedContext::ArgumentList,
+        delimited(
+            char('('),
+            cut(map(
+                opt(terminated(
+                    separated_list1(ws(char(',')), ws(inner)),
+                    opt(ws(char(','))),
+                )),
+                |args| args.unwrap_or_default(),
             )),
-            |args| args.unwrap_or_default(),
-        )),
-        cut(ws(char(')'))),
+            cut(ws(char(')'))),
+        ),
     )
 }
 
@@ -174,16 +177,16 @@ where
 {
     extended_context(ExtendedContext::VariableOrFunctionCall, move |i: I| {
         let (i, ident) = identifier(i)?;
-        if let Ok((i, args)) = args::<_, _, E, _>(expression)(i.clone()) {
-            Ok((
+        match args::<_, _, E, _>(expression)(i.clone()) {
+            Ok((i, args)) => Ok((
                 i,
                 Expr::Call(Call {
                     callee: ident,
                     args,
                 }),
-            ))
-        } else {
-            Ok((i, Expr::Variable(ident)))
+            )),
+            Err(nom::Err::Error(_)) => Ok((i, Expr::Variable(ident))),
+            Err(e) => Err(e),
         }
     })(i)
 }
