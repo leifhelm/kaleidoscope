@@ -75,7 +75,6 @@ impl Compiler {
         // let parser_result = kaleidoscope_parser_pest::parse::<Position>(input);
         match parser_result {
             Ok(ast_list) => {
-                writeln!(&mut self.stdout, "{:#?}", ast_list)?;
                 return self.codegen(input, ast_list);
             }
             // Err(err) => writeln!(

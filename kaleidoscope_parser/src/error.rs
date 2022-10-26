@@ -136,7 +136,6 @@ where
     <L as InputIter>::Item: AsChar,
 {
     fn from(err: Error<L>) -> Self {
-        println!("{:#?}", err);
         let message = err.tree.to_string();
         let position = LocatedInput::position(&err.slice);
         let message = if let Some(unexpected_char) = err.slice.iter_elements().next() {

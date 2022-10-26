@@ -76,7 +76,6 @@ impl<'ctx, X> CodeGen<'ctx, X> {
         if let Err(err) = self.module.verify() {
             self.errors.push(CodeGenError::InvalidGeneratedModule(err));
         }
-        self.module.print_to_stderr();
         if self.errors.is_empty() {
             Ok(self.module)
         } else {
